@@ -15,7 +15,10 @@
         .product-card { transition: all 0.2s ease; }
         .product-card:active { transform: scale(0.98); }
         .animate-fade-in { animation: fadeIn 0.2s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-slide-up { animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
     </style>
     <script type="importmap">
     {
@@ -32,7 +35,7 @@
     <div id="root"></div>
 
     <script type="module">
-        import React, { useState, useMemo, useRef, useEffect } from 'react';
+        import React, { useState, useMemo, useRef } from 'react';
         import ReactDOM from 'react-dom/client';
 
         const RAW_PRODUCTS = `agnès b. $50 禮券,20081,42.5,10
@@ -74,11 +77,11 @@ Lady M 女王棉花餅,10388,23,50
             const [selectedBrand, setSelectedBrand] = useState(null);
             const [searchTerm, setSearchTerm] = useState('');
             const [cart, setCart] = useState({});
+            const [showPreview, setShowPreview] = useState(false);
             const [showQR, setShowQR] = useState(false);
             const [orderId, setOrderId] = useState('');
             const qrCanvasRef = useRef(null);
 
-            // 解析產品與分類
             const products = useMemo(() => 
                 RAW_PRODUCTS.trim().split('\n').map(line => {
                     const [name, sku, price, minQty] = line.split(',');
@@ -87,21 +90,22 @@ Lady M 女王棉花餅,10388,23,50
                 }), []
             );
 
-            const brands = useMemo(() => {
-                const uniqueBrands = [...new Set(products.map(p => p.brand))];
-                return uniqueBrands.sort();
-            }, [products]);
+            const brands = useMemo(() => [...new Set(products.map(p => p.brand))].sort(), [products]);
 
             const filteredProducts = useMemo(() => {
-                if (searchTerm) return products.filter(p => p.name.includes(searchTerm));
+                if (searchTerm) return products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
                 return products.filter(p => p.brand === selectedBrand);
             }, [selectedBrand, searchTerm, products]);
 
+            const cartItems = useMemo(() => 
+                Object.entries(cart).map(([sku, qty]) => {
+                    const p = products.find(prod => prod.sku === sku);
+                    return { ...p, quantity: qty };
+                }), [cart, products]
+            );
+
+            const totalPrice = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
             const totalCount = Object.values(cart).reduce((a, b) => a + b, 0);
-            const totalPrice = Object.entries(cart).reduce((acc, [sku, qty]) => {
-                const p = products.find(prod => prod.sku === sku);
-                return acc + (p?.price || 0) * qty;
-            }, 0);
 
             const updateQty = (sku, delta) => {
                 const product = products.find(p => p.sku === sku);
@@ -117,12 +121,13 @@ Lady M 女王棉花餅,10388,23,50
                 });
             };
 
-            const generateOrder = () => {
+            const handleConfirmOrder = () => {
                 const id = Math.floor(10000000 + Math.random() * 90000000).toString();
                 setOrderId(id);
+                setShowPreview(false);
                 setShowQR(true);
                 setTimeout(() => {
-                    const qrData = `ORDER:${id}|TOTAL:${totalPrice}`;
+                    const qrData = `ORDER:${id}|TOTAL:${totalPrice}|ITEMS:${cartItems.map(i=>`${i.sku}x${i.quantity}`).join(',')}`;
                     new QRious({ element: qrCanvasRef.current, value: qrData, size: 240, level: 'H' });
                 }, 100);
             };
@@ -138,13 +143,13 @@ Lady M 女王棉花餅,10388,23,50
                         selectedBrand && !searchTerm && React.createElement('button', {
                             onClick: () => setSelectedBrand(null),
                             className: "text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full"
-                        }, "返回品牌清單")
+                        }, "返回分類")
                     ),
                     React.createElement('div', { className: "relative" },
                         React.createElement('i', { className: "fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" }),
                         React.createElement('input', {
                             type: "text",
-                            placeholder: "搜尋所有禮券...",
+                            placeholder: "搜尋全店禮券...",
                             value: searchTerm,
                             onChange: e => setSearchTerm(e.target.value),
                             className: "w-full bg-gray-100 border-none rounded-2xl pl-11 pr-5 py-3 text-sm focus:ring-2 focus:ring-rose-200 outline-none transition-all"
@@ -152,9 +157,8 @@ Lady M 女王棉花餅,10388,23,50
                     )
                 ),
 
-                // 主內容區
+                // 主內容
                 React.createElement('main', { className: "p-4" },
-                    // 1. 品牌選單 (尚未選擇品牌且沒有搜尋時)
                     !selectedBrand && !searchTerm && React.createElement('div', { className: "grid grid-cols-2 gap-3 animate-fade-in" },
                         brands.map(brand => {
                             const brandCount = Object.entries(cart).filter(([sku]) => products.find(p => p.sku === sku)?.brand === brand).length;
@@ -170,11 +174,10 @@ Lady M 女王棉花餅,10388,23,50
                         })
                     ),
 
-                    // 2. 產品列表 (選擇品牌後或搜尋時)
                     (selectedBrand || searchTerm) && React.createElement('div', { className: "space-y-3 animate-fade-in" },
                         React.createElement('div', { className: "flex items-center gap-2 mb-4" },
                             React.createElement('span', { className: "w-1 h-5 bg-rose-500 rounded-full" }),
-                            React.createElement('h2', { className: "font-black text-slate-800" }, searchTerm ? `搜尋結果: ${searchTerm}` : selectedBrand)
+                            React.createElement('h2', { className: "font-black text-slate-800" }, searchTerm ? "搜尋結果" : selectedBrand)
                         ),
                         filteredProducts.map(p => React.createElement('div', {
                             key: p.sku,
@@ -196,33 +199,61 @@ Lady M 女王棉花餅,10388,23,50
                     )
                 ),
 
-                // Footer 結帳欄
+                // Footer
                 React.createElement('footer', { className: "fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t p-5 z-40 max-w-lg mx-auto rounded-t-[2.5rem] shadow-2xl" },
                     React.createElement('div', { className: "flex justify-between items-center" },
                         React.createElement('div', null,
-                            React.createElement('span', { className: "text-gray-400 text-[10px] font-bold uppercase block" }, "目前總額"),
+                            React.createElement('span', { className: "text-gray-400 text-[10px] font-bold uppercase block" }, "總金額估算"),
                             React.createElement('span', { className: "text-2xl font-black text-slate-900" }, `HK$ ${totalPrice.toLocaleString()}`)
                         ),
                         React.createElement('button', {
-                            onClick: generateOrder,
+                            onClick: () => totalCount > 0 && setShowPreview(true),
                             disabled: totalCount === 0,
-                            className: `px-10 py-4 rounded-2xl font-bold transition-all ${totalCount > 0 ? 'bg-slate-900 text-white shadow-xl' : 'bg-gray-100 text-gray-300'}`
-                        }, "生成訂單", totalCount > 0 && ` (${totalCount})`)
+                            className: `px-10 py-4 rounded-2xl font-bold transition-all ${totalCount > 0 ? 'bg-slate-900 text-white shadow-xl active:scale-95' : 'bg-gray-100 text-gray-300'}`
+                        }, "預覽訂單", totalCount > 0 && ` (${totalCount})`)
                     )
                 ),
 
-                // QR Code Modal
+                // 預覽訂單 Modal (Step 1)
+                showPreview && React.createElement('div', { className: "fixed inset-0 bg-black/40 z-50 flex items-end animate-fade-in" },
+                    React.createElement('div', { className: "bg-white w-full max-w-lg mx-auto rounded-t-[3rem] p-8 shadow-2xl animate-slide-up" },
+                        React.createElement('div', { className: "flex justify-between items-center mb-6" },
+                            React.createElement('h3', { className: "text-xl font-black text-slate-800" }, "預覽訂單內容"),
+                            React.createElement('button', { onClick: () => setShowPreview(false), className: "text-gray-400" }, React.createElement('i', { className: "fas fa-times text-xl" }))
+                        ),
+                        React.createElement('div', { className: "max-h-[50vh] overflow-y-auto mb-8 divide-y divide-slate-50 hide-scrollbar" },
+                            cartItems.map(item => React.createElement('div', { key: item.sku, className: "py-4 flex justify-between items-center" },
+                                React.createElement('div', null,
+                                    React.createElement('h5', { className: "text-sm font-bold text-slate-700" }, item.name),
+                                    React.createElement('p', { className: "text-rose-500 text-xs font-bold" }, `HK$${item.price} × ${item.quantity}`)
+                                ),
+                                React.createElement('span', { className: "font-black text-slate-900" }, `HK$${(item.price * item.quantity).toLocaleString()}`)
+                            ))
+                        ),
+                        React.createElement('div', { className: "flex justify-between items-center mb-6 px-2" },
+                            React.createElement('span', { className: "font-bold text-slate-400" }, "最終金額"),
+                            React.createElement('span', { className: "text-2xl font-black text-rose-500" }, `HK$${totalPrice.toLocaleString()}`)
+                        ),
+                        React.createElement('button', { 
+                            onClick: handleConfirmOrder,
+                            className: "w-full bg-rose-500 text-white py-5 rounded-2xl font-bold text-lg shadow-xl shadow-rose-100" 
+                        }, "確認下單並生成二維碼")
+                    )
+                ),
+
+                // QR Modal (Step 2)
                 showQR && React.createElement('div', { className: "fixed inset-0 bg-slate-900/95 z-[60] flex items-center justify-center p-6 animate-fade-in" },
                     React.createElement('div', { className: "bg-white w-full max-w-sm rounded-[3rem] p-10 text-center relative" },
-                        React.createElement('h3', { className: "text-2xl font-black mb-6" }, "訂單已生成"),
+                        React.createElement('h3', { className: "text-2xl font-black mb-6" }, "訂單已成功生成"),
                         React.createElement('div', { className: "bg-slate-50 p-6 rounded-[2.5rem] inline-block mb-8" },
                             React.createElement('canvas', { ref: qrCanvasRef, className: "mx-auto" })
                         ),
+                        React.createElement('p', { className: "text-slate-400 text-xs uppercase mb-1" }, "Order ID"),
                         React.createElement('p', { className: "text-3xl font-black text-slate-900 mb-6 tracking-widest" }, orderId),
                         React.createElement('button', { 
                             onClick: () => setShowQR(false),
-                            className: "bg-rose-500 text-white w-full py-4 rounded-2xl font-bold shadow-lg shadow-rose-200"
-                        }, "完成付款並關閉")
+                            className: "text-rose-500 font-bold border-b border-rose-500"
+                        }, "返回選購")
                     )
                 )
             );
