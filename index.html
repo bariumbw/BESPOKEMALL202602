@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Bespoke Mall | 智能訂購系統</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>https://claude.ai/chat/3df15cd1-9fb6-4241-8326-1cec6c1b93e6
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@300;400;500;700;900&display=swap');
@@ -31,7 +31,7 @@
         import ReactDOM from 'react-dom/client';
 
         const BRAND_CONFIG = {
-            "agnès b.": "https://www.bespoke-wedding.com/sites/default/files/禮卡/Agnès%20b.png",
+            "agnès b.": "https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/Agne%CC%80s%20b.png",
             "聖安娜": "https://www.bespoke-wedding.com/sites/default/files/禮卡/SAINT%20%20HIGH.webp",
             "GODIVA": "https://www.bespoke-wedding.com/sites/default/files/禮卡/GODIVA.png",
             "東海堂": "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/tong.png",
@@ -49,7 +49,7 @@
         };
 
         const PRODUCT_DEFS = [
-            // --- Gift Cards ---
+            // --- Gift Cards (15 brands) ---
             { category: "Gift Card", brand: "agnès b.", name: "agnès b. $50禮券", sku: "20081", expiry: "2026-12-31", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/agnes50.png", tiers: [{q:10, d:0.85}] },
             { category: "Gift Card", brand: "agnès b.", name: "agnès b. $80禮券", sku: "200082", expiry: "2026-12-31", orig: 80, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/agnes80.png", tiers: [{q:10, d:0.85}] },
             { category: "Gift Card", brand: "agnès b.", name: "agnès b. $100禮券", sku: "20083", expiry: "2026-12-31", orig: 100, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/agnes100.png", tiers: [{q:10, d:0.85}] },
@@ -88,7 +88,7 @@
             { category: "Gift Card", brand: "奇華", name: "奇華 金緣喜禮券", sku: "10467", expiry: "2026-12-31", orig: 167.6, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/金緣.png", tiers: [{q:10, d:0.84}] },
             { category: "Gift Card", brand: "奇華", name: "奇華 金御喜禮券", sku: "10469", expiry: "2026-12-31", orig: 434.2, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/金御.png", tiers: [{q:1, d:0.84}] },
 
-            // --- Favors ---
+            // --- Favors (7 brands) ---
             { category: "Favor", brand: "agnès b.", name: "幸運曲奇(2個)", sku: "10370", expiry: "2026-12-31", orig: 46, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/婚禮回禮圓筒禮盒幸運曲奇(2個).png", tiers: [{q:10, d:0.85}] },
             { category: "Favor", brand: "agnès b.", name: "榛子朱古力脆珠(40克)", sku: "10368", expiry: "2026-12-31", orig: 46, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/婚禮回禮圓筒禮盒：榛子朱古力脆珠%20(40克).png", tiers: [{q:10, d:0.85}] },
             { category: "Favor", brand: "agnès b.", name: "片裝朱古力4片", sku: "10201", expiry: "2026-12-31", orig: 46, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/婚禮回禮圓筒禮盒：片裝朱古力4片.png", tiers: [{q:10, d:0.85}] },
