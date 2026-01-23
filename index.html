@@ -49,6 +49,7 @@
         };
 
         const PRODUCT_DEFS = [
+            // --- Gift Cards ---
             { category: "Gift Card", brand: "agnès b.", name: "agnès b. $50禮券", sku: "20081", expiry: "2026-12-31", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/agnes50.png", tiers: [{q:10, d:0.85}] },
             { category: "Gift Card", brand: "agnès b.", name: "agnès b. $80禮券", sku: "200082", expiry: "2026-12-31", orig: 80, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/agnes80.png", tiers: [{q:10, d:0.85}] },
             { category: "Gift Card", brand: "agnès b.", name: "agnès b. $100禮券", sku: "20083", expiry: "2026-12-31", orig: 100, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/agnes100.png", tiers: [{q:10, d:0.85}] },
@@ -62,9 +63,13 @@
             { category: "Gift Card", brand: "鴻福堂", name: "自家湯套票(10張)", sku: "Hung-Fuk-Tong-001", expiry: "2026-12-01", orig: 600, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/自家湯.png", tiers: [{q:1, d:0.6583}] },
             { category: "Gift Card", brand: "Lady M", name: "Lady M US$80", sku: "10437-10443", expiry: "2026-12-31", orig: 80, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/Ladym80_.png", tiers: [{q:1, d:1.0}, {q:50, d:0.8}] },
             { category: "Gift Card", brand: "華御結", name: "華御結 $25禮券", sku: "10446", expiry: "2026-09-30", orig: 25, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/hana25.png", tiers: [{q:10, d:0.88}, {q:50, d:0.85}] },
-            { category: "Gift Card", brand: "LE CREUSET", name: "LC $100禮券", sku: "10290", expiry: "N/A", orig: 100, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/le%20100.webp", tiers: [{q:1, d:0.6}] },
+            { category: "Gift Card", brand: "LE CREUSET", name: "LC $100禮券", sku: "10290", expiry: "不設期限", orig: 100, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/le%20100.webp", tiers: [{q:1, d:0.6}] },
             { category: "Gift Card", brand: "奇華", name: "奇華 $50禮券", sku: "10461", expiry: "2026-12-31", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/50.png", tiers: [{q:10, d:0.8}] },
             { category: "Gift Card", brand: "L.M.D.C", name: "LMDC $50現金券", sku: "10440", expiry: "2026-12-31", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/lmdc.png", tiers: [{q:10, d:0.8}] },
+
+            // --- Favors ---
+            { category: "Favor", brand: "LE CREUSET", name: "陶瓷心形烤盅", sku: "10292", expiry: "永久有效", orig: 338, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/LC%E5%BF%83%E5%BD%A2.png", tiers: [{q:1, d:0.35}] },
+            { category: "Favor", brand: "LE CREUSET", name: "陶瓷小圓鍋 (10cm)", sku: "10291", expiry: "永久有效", orig: 288, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/LC%E5%B0%8F%E5%9C%93%E9%8D%8B.png", tiers: [{q:1, d:0.35}] },
             { category: "Favor", brand: "agnès b.", name: "幸運曲奇圓筒禮盒", sku: "10370", expiry: "2026-06-30", orig: 46, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/婚禮回禮圓筒禮盒幸運曲奇(2個).png", tiers: [{q:10, d:0.85}] },
             { category: "Favor", brand: "GODIVA", name: "雅致巧克力鐵盒2顆", sku: "10135", expiry: "2026-08-15", orig: 59, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/go雅致巧克力鐵盒2顆裝.png", tiers: [{q:10, d:0.85}] },
             { category: "Favor", brand: "Lady M", name: "女王棉花餅", sku: "10388", expiry: "2026-12-31", orig: 25, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/ladymb1.jpg", tiers: [{q:10, d:1.0}, {q:50, d:0.92}] },
@@ -210,12 +215,16 @@
                                         React.createElement('div', { className: "flex-1 min-w-0" },
                                             React.createElement('div', { className: "text-sm font-black mb-1 line-clamp-1" }, p.name),
                                             
-                                            /* 1. 層遞價格欄位 (位於有效日期上方) */
+                                            /* 1. 層遞價格 (顯示在有效日期上方) */
                                             React.createElement('div', { className: "text-[9px] text-rose-400 font-bold mb-0.5 leading-tight" }, tierInfo.map(info => React.createElement('div', { key: info }, info))),
                                             
-                                            React.createElement('div', { className: "text-rose-500 font-black text-lg" }, `$${price}`),
+                                            /* 2. 當前價格 + 原價顯示 */
+                                            React.createElement('div', { className: "flex items-baseline gap-2" },
+                                                React.createElement('div', { className: "text-rose-500 font-black text-lg" }, `$${price}`),
+                                                React.createElement('div', { className: "text-gray-300 line-through text-xs" }, `$${p.orig}`)
+                                            ),
                                             
-                                            /* 2. 有效日期欄位 */
+                                            /* 3. 有效日期 */
                                             React.createElement('div', { className: "text-[10px] text-gray-600 font-bold mt-0.5" }, `有效日期: ${p.expiry}`),
                                             
                                             React.createElement('div', { className: "text-[9px] text-gray-400 flex flex-wrap gap-x-2" }, 
