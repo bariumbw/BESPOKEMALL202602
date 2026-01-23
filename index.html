@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html>1
 <html lang="zh-HK">
 <head>
     <meta charset="UTF-8">
@@ -27,10 +27,10 @@
     <div id="root"></div>
 
     <script>
-        // 2. 映射 React 全局變數
         const { useState, useMemo, useRef, useEffect } = React;
 
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwauVUgh9HP0D3RlAIogeCjttHn_YUc8HBL6LtRlSCmDkkkyd5UGy6Yx2muWJoQfrtm5g/exec";
+        // --- 已更新為你提供的最新網址 ---
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx6fdd7wSz7UiJMAunDMjNrMa_HnwBZll3W_TStvhcoEwEvebEGrGCCOhswBAcu8yWeww/exec";
 
         const BRAND_CONFIG = {
             "agnès b.": "https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/Agne%CC%80s%20b.png",
@@ -177,6 +177,7 @@
                 };
 
                 try {
+                    // 發送數據到新的 Google Script URL
                     await fetch(GOOGLE_SCRIPT_URL, {
                         method: 'POST', mode: 'no-cors',
                         headers: { 'Content-Type': 'application/json' },
@@ -203,7 +204,6 @@
                 }
             }, [showBarcode, currentOrder]);
 
-            // React 元件 UI
             return React.createElement('div', { className: "min-h-screen max-w-md mx-auto relative pb-20 bg-gray-50" },
                 React.createElement('header', { className: "bg-white p-5 sticky top-0 z-30 shadow-sm rounded-b-[2rem]" },
                     React.createElement('div', { className: "flex justify-between items-center mb-4" },
@@ -324,7 +324,7 @@
                 showHistory && React.createElement('div', { className: "fixed inset-0 bg-black/60 z-[70] flex items-center justify-center p-6 backdrop-blur-sm" },
                     React.createElement('div', { className: "bg-white w-full max-w-sm rounded-[3rem] p-8 flex flex-col animate-up shadow-2xl relative max-h-[80vh]" },
                         React.createElement('button', { onClick: () => setShowHistory(false), className: "absolute top-6 right-6 text-gray-300 text-xl" }, "✕"),
-                        React.createElement('h2', { className: "text-xl font-black mb-6 text-slate-800" }, "歷史紀錄 (5張)"),
+                        React.createElement('h2', { className: "text-xl font-black mb-6 text-slate-800" }, "歷史紀錄 (最近5張)"),
                         React.createElement('div', { className: "overflow-y-auto space-y-4 hide-scrollbar" },
                             orderHistory.length === 0 ? 
                                 React.createElement('div', { className: "text-center text-gray-400 py-10 italic" }, "暫無歷史紀錄") :
