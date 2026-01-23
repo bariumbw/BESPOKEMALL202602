@@ -49,7 +49,6 @@
         };
 
         const PRODUCT_DEFS = [
-            // --- Gift Cards ---
             { category: "Gift Card", brand: "agnès b.", name: "agnès b. $50禮券", sku: "20081", expiry: "2026-12-31", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/agnes50.png", tiers: [{q:10, d:0.85}] },
             { category: "Gift Card", brand: "agnès b.", name: "agnès b. $80禮券", sku: "200082", expiry: "2026-12-31", orig: 80, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/agnes80.png", tiers: [{q:10, d:0.85}] },
             { category: "Gift Card", brand: "agnès b.", name: "agnès b. $100禮券", sku: "20083", expiry: "2026-12-31", orig: 100, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/agnes100.png", tiers: [{q:10, d:0.85}] },
@@ -87,8 +86,6 @@
             { category: "Gift Card", brand: "奇華", name: "奇華 金雅喜禮券", sku: "10465/10468", expiry: "2026-12-31", orig: 106.6, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/金雅.png", tiers: [{q:10, d:0.84}] },
             { category: "Gift Card", brand: "奇華", name: "奇華 金緣喜禮券", sku: "10467", expiry: "2026-12-31", orig: 167.6, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/金緣.png", tiers: [{q:10, d:0.84}] },
             { category: "Gift Card", brand: "奇華", name: "奇華 金御喜禮券", sku: "10469", expiry: "2026-12-31", orig: 434.2, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/金御.png", tiers: [{q:1, d:0.84}] },
-
-            // --- Favors ---
             { category: "Favor", brand: "agnès b.", name: "幸運曲奇(2個)", sku: "10370", expiry: "2026-12-31", orig: 46, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/婚禮回禮圓筒禮盒幸運曲奇(2個).png", tiers: [{q:10, d:0.85}] },
             { category: "Favor", brand: "agnès b.", name: "榛子朱古力脆珠(40克)", sku: "10368", expiry: "2026-12-31", orig: 46, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/婚禮回禮圓筒禮盒：榛子朱古力脆珠%20(40克).png", tiers: [{q:10, d:0.85}] },
             { category: "Favor", brand: "agnès b.", name: "片裝朱古力4片", sku: "10201", expiry: "2026-12-31", orig: 46, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/婚禮回禮圓筒禮盒：片裝朱古力4片.png", tiers: [{q:10, d:0.85}] },
@@ -161,8 +158,7 @@
             const handleConfirm = () => {
                 const id = Math.floor(100000 + Math.random() * 900000).toString();
                 const newOrder = { 
-                    id, 
-                    total: totalPrice, 
+                    id, total: totalPrice, 
                     date: new Date().toLocaleString('zh-HK', { hour12: false }),
                     items: cartItems.map(i => ({ name: i.name, qty: i.qty }))
                 };
@@ -258,9 +254,9 @@
                                     React.createElement('div', { className: "text-xs text-rose-500 font-bold" }, `$${item.currentPrice} / 件`)
                                 ),
                                 React.createElement('div', { className: "flex items-center gap-3 bg-gray-100 rounded-full px-3 py-1" },
-                                    React.createElement('button', { onClick: () => updateQty(item.sku, -1), className: "text-gray-400 font-bold" }, "−"),
+                                    React.createElement('button', { onClick: () => updateQty(item.sku, -1), className: "text-gray-400 font-bold px-1" }, "−"),
                                     React.createElement('span', { className: "font-black text-sm w-4 text-center" }, item.qty),
-                                    React.createElement('button', { onClick: () => updateQty(item.sku, 1), className: "text-rose-500 font-bold" }, "+")
+                                    React.createElement('button', { onClick: () => updateQty(item.sku, 1), className: "text-rose-500 font-bold px-1" }, "+")
                                 )
                             ))
                         ),
@@ -270,7 +266,7 @@
                                 React.createElement('span', { className: "text-2xl font-black text-rose-500" }, `HK$ ${totalPrice.toLocaleString()}`)
                             )
                         ),
-                        React.createElement('button', { onClick: handleConfirm, className: "w-full bg-rose-500 text-white py-5 rounded-2xl font-black text-lg" }, "下一步"),
+                        React.createElement('button', { onClick: handleConfirm, className: "w-full bg-rose-500 text-white py-5 rounded-2xl font-black text-lg shadow-xl" }, "確認訂單"),
                         React.createElement('button', { onClick: () => setShowPreview(false), className: "w-full mt-4 text-gray-400 font-bold" }, "返回修改")
                     )
                 ),
@@ -283,7 +279,7 @@
                                 React.createElement('div', { className: "text-center text-gray-400 py-10 italic" }, "暫無歷史紀錄") :
                                 orderHistory.map(ord => React.createElement('div', { 
                                     key: ord.id, onClick: () => { setCurrentOrder(ord); setShowQR(true); },
-                                    className: "bg-gray-50 p-4 rounded-3xl border border-gray-100 flex items-center justify-between"
+                                    className: "bg-gray-50 p-4 rounded-3xl border border-gray-100 flex items-center justify-between active:scale-95 transition-all"
                                 },
                                     React.createElement('div', { className: "flex-1" },
                                         React.createElement('div', { className: "flex justify-between mb-1" },
@@ -310,8 +306,8 @@
                         React.createElement('div', { className: "mt-6 text-center w-full" },
                             React.createElement('div', { className: "text-[10px] text-gray-400 uppercase tracking-widest font-bold" }, "Reference Number"),
                             React.createElement('div', { className: "text-2xl font-black text-rose-500 tracking-tighter" }, `BW-${currentOrder?.id}`),
-                            React.createElement('div', { className: "mt-3 pt-3 border-t border-dashed border-gray-200 text-left" },
-                                currentOrder?.items.map((item, idx) => React.createElement('div', { key: idx, className: "text-[10px] text-gray-500 flex justify-between" },
+                            React.createElement('div', { className: "mt-3 pt-3 border-t border-dashed border-gray-200 text-left max-h-32 overflow-y-auto hide-scrollbar" },
+                                currentOrder?.items.map((item, idx) => React.createElement('div', { key: idx, className: "text-[10px] text-gray-500 flex justify-between py-1" },
                                     React.createElement('span', { className: "truncate mr-2" }, item.name),
                                     React.createElement('span', { className: "font-bold flex-shrink-0" }, `x${item.qty}`)
                                 ))
