@@ -38,6 +38,7 @@
         import React, { useState, useMemo, useRef, useEffect } from 'react';
         import ReactDOM from 'react-dom/client';
 
+        // 統一將所有 Godiva 改為大寫開頭或全大寫以作匹配
         const RAW_PRODUCTS = `agnès b. $50 禮券,20081,42.5,10
 agnès b. $80 禮券,200082,68,10
 agnès b. $100 禮券,20083,85,10
@@ -67,8 +68,8 @@ LE CREUSET $1000 禮券,10294,600,1
 奇華 $50 禮券,10461,40,10
 奇華 金盈喜禮券,10463,70,10
 agnès b. 回禮圓筒禮盒,10370,39.1,50
-Godiva 雅致巧克力鐵盒 (2顆),10135,50.2,100
-Godiva 巧克力紙盒 (2顆),10131,33.2,100
+GODIVA 雅致巧克力鐵盒 (2顆),10135,50.2,100
+GODIVA 巧克力紙盒 (2顆),10131,33.2,100
 Lady M 女王棉花餅,10388,23,50
 糕點時光 囍糖雜錦,10402,17.6,100
 永樂 有麵子回禮小禮物,10422,30,100`;
@@ -85,7 +86,9 @@ Lady M 女王棉花餅,10388,23,50
             const products = useMemo(() => 
                 RAW_PRODUCTS.trim().split('\n').map(line => {
                     const [name, sku, price, minQty] = line.split(',');
-                    const brand = name.split(' ')[0];
+                    // 邏輯處理：如果品牌是小寫 Godiva，統一轉為大寫 GODIVA
+                    let brand = name.split(' ')[0];
+                    if (brand.toUpperCase() === 'GODIVA') brand = 'GODIVA';
                     return { name, sku, price: parseFloat(price) || 0, minQty: parseInt(minQty) || 1, brand };
                 }), []
             );
@@ -107,7 +110,6 @@ Lady M 女王棉花餅,10388,23,50
             const totalPrice = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
             const totalCount = Object.values(cart).reduce((a, b) => a + b, 0);
 
-            // 自動關閉預覽如果購物車變空
             useEffect(() => {
                 if (totalCount === 0 && showPreview) setShowPreview(false);
             }, [totalCount, showPreview]);
@@ -117,11 +119,9 @@ Lady M 女王棉花餅,10388,23,50
                 setCart(prev => {
                     const current = prev[sku] || 0;
                     let newVal = current + delta;
-                    
                     if (current === 0 && delta > 0) newVal = product.minQty;
                     else if (current === product.minQty && delta < 0) newVal = 0;
                     else if (newVal > 0 && newVal < product.minQty) newVal = product.minQty;
-                    
                     const next = { ...prev };
                     if (newVal <= 0) delete next[sku]; else next[sku] = newVal;
                     return next;
@@ -226,7 +226,7 @@ Lady M 女王棉花餅,10388,23,50
                     )
                 ),
 
-                // 預覽訂單 Modal (已加入更改數量功能)
+                // 預覽訂單 Modal
                 showPreview && React.createElement('div', { className: "fixed inset-0 bg-black/60 z-50 flex items-end animate-fade-in" },
                     React.createElement('div', { className: "bg-white w-full max-w-lg mx-auto rounded-t-[3rem] p-8 shadow-2xl animate-slide-up" },
                         React.createElement('div', { className: "flex justify-between items-center mb-6" },
@@ -243,7 +243,6 @@ Lady M 女王棉花餅,10388,23,50
                                     )
                                 ),
                                 React.createElement('div', { className: "flex items-center gap-3" },
-                                    // 預覽窗內的數量控制
                                     React.createElement('div', { className: "flex items-center bg-slate-100 p-1 rounded-full" },
                                         React.createElement('button', { 
                                             onClick: () => updateQty(item.sku, -1), 
