@@ -117,7 +117,7 @@
             const qrCanvasRef = useRef(null);
 
             useEffect(() => {
-                const saved = localStorage.getItem('bw_order_history_v2');
+                const saved = localStorage.getItem('bw_cust_history_v3');
                 if (saved) setOrderHistory(JSON.parse(saved));
             }, []);
 
@@ -172,16 +172,26 @@
                 });
             };
 
-            const handleConfirm = () => {
+            const handleConfirm = async () => {
                 const id = Math.floor(100000 + Math.random() * 900000).toString();
+                const now = new Date().toLocaleString('zh-HK', { hour12: false });
                 const newOrder = { 
                     id, total: totalPrice, 
-                    date: new Date().toLocaleString('zh-HK', { hour12: false }),
-                    items: cartItems.map(i => ({ name: i.name, qty: i.qty }))
+                    date: now,
+                    items: cartItems.map(i => ({ name: i.name, qty: i.qty, sku: i.sku, price: i.currentPrice }))
                 };
-                const updatedHistory = [newOrder, ...orderHistory].slice(0, 10);
+
+                // 用戶本地歷史僅保留 5 筆
+                const updatedHistory = [newOrder, ...orderHistory].slice(0, 5);
                 setOrderHistory(updatedHistory);
-                localStorage.setItem('bw_order_history_v2', JSON.stringify(updatedHistory));
+                localStorage.setItem('bw_cust_history_v3', JSON.stringify(updatedHistory));
+
+                // 【同步至後端所有訂單庫】
+                // 這裡模擬發送，管理頁面會從一個統一的地方（如 Firebase 或數據庫）讀取
+                // 目前因為是前端展示，建議將所有訂單存放在一個獨立的 localStorage 鍵中模擬後端
+                const allOrders = JSON.parse(localStorage.getItem('bw_all_orders_db') || '[]');
+                localStorage.setItem('bw_all_orders_db', JSON.stringify([newOrder, ...allOrders]));
+
                 setCurrentOrder(newOrder);
                 setShowPreview(false);
                 setShowQR(true);
@@ -201,7 +211,7 @@
                             React.createElement('h1', { onClick: () => { setSelectedBrand(null); setSearchTerm(''); }, className: "text-2xl font-black text-rose-500 italic cursor-pointer leading-none" }, "Bespoke Mall"),
                             React.createElement('p', { className: "text-[10px] text-gray-400 font-bold mt-1" }, "（只限展場下單）")
                         ),
-                        React.createElement('button', { onClick: () => setShowHistory(true), className: "bg-slate-100 px-4 py-2 rounded-full text-[10px] font-bold text-slate-600 shadow-inner" }, "📋 我的訂單")
+                        React.createElement('button', { onClick: () => setShowHistory(true), className: "bg-slate-100 px-4 py-2 rounded-full text-[10px] font-bold text-slate-600 shadow-inner" }, "📋 我的紀錄")
                     ),
                     React.createElement('input', {
                         type: "text", placeholder: "搜尋產品、品牌或 SKU...",
@@ -316,11 +326,11 @@
                 showHistory && React.createElement('div', { className: "fixed inset-0 bg-black/60 z-[70] flex items-center justify-center p-6 backdrop-blur-sm" },
                     React.createElement('div', { className: "bg-white w-full max-w-sm rounded-[3rem] p-8 flex flex-col animate-up shadow-2xl relative max-h-[80vh]" },
                         React.createElement('button', { onClick: () => setShowHistory(false), className: "absolute top-6 right-6 text-gray-300 text-xl" }, "✕"),
-                        React.createElement('h2', { className: "text-xl font-black mb-6 text-slate-800" }, "歷史紀錄"),
+                        React.createElement('h2', { className: "text-xl font-black mb-6 text-slate-800" }, "歷史紀錄 (最近5筆)"),
                         React.createElement('div', { className: "overflow-y-auto space-y-4 hide-scrollbar" },
                             orderHistory.length === 0 ? 
                                 React.createElement('div', { className: "text-center text-gray-400 py-10 italic" }, "暫無歷史紀錄") :
-                                orderHistory.map(ord => React.createElement('div', { key: ord.id, onClick: () => { setCurrentOrder(ord); setShowQR(true); }, className: "bg-gray-50 p-4 rounded-3xl border border-gray-100 flex items-center justify-between" },
+                                orderHistory.map(ord => React.createElement('div', { key: ord.id, onClick: () => { setCurrentOrder(ord); setShowQR(true); }, className: "bg-gray-50 p-4 rounded-3xl border border-gray-100 flex items-center justify-between cursor-pointer" },
                                     React.createElement('div', { className: "flex-1" },
                                         React.createElement('div', { className: "flex justify-between" },
                                             React.createElement('span', { className: "font-black text-rose-500 text-sm" }, `BW-${ord.id}`),
