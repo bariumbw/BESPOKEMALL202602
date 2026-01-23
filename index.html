@@ -9,14 +9,21 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@300;400;500;700;900&display=swap');
-        body { font-family: 'Noto+Sans+HK', -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
-        .brand-card { transition: all 0.2s ease; overflow: hidden; border-radius: 2rem; }
-        .brand-card:active { transform: scale(0.95); }
-        .product-card { transition: all 0.2s ease; border-radius: 1.5rem; }
-        .product-card:active { background-color: #fff1f2; }
+        body { 
+            font-family: 'Noto+Sans+HK', -apple-system, sans-serif; 
+            -webkit-tap-highlight-color: transparent; 
+            overscroll-behavior-y: contain; /* 防止手機瀏覽器下拉刷新影響操作 */
+        }
+        .brand-card { transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; }
+        .brand-card:active { transform: scale(0.96); }
+        .product-card { transition: background-color 0.2s; }
+        .product-card:active { background-color: #f1f5f9; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .animate-up { animation: slideUp 0.3s cubic-bezier(0, 0, 0.2, 1); }
+        .animate-up { animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        /* 手機專屬陰影與圓角增強 */
+        .mobile-shadow { shadow-sm: 0 2px 10px rgba(0,0,0,0.05); }
     </style>
     <script type="importmap">
     {
@@ -27,48 +34,27 @@
     }
     </script>
 </head>
-<body class="bg-slate-50 text-slate-900">
+<body class="bg-gray-50 text-slate-900">
     <div id="root"></div>
 
     <script type="module">
         import React, { useState, useMemo, useRef, useEffect } from 'react';
         import ReactDOM from 'react-dom/client';
 
-        // 品牌圖片資料庫
-        const BRAND_IMAGES = {
-            "agnès b.": "https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/Agne%CC%80s%20b.png",
-            "聖安娜": "https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/St.Honore.png",
-            "GODIVA": "https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/Godiva.png",
-            "東海堂": "https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/Arome.png",
-            "太興": "https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/Tai%20Hing.png",
-            "鴻福堂": "https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/Hung%20Fook%20Tong.png",
-            "Lady M": "https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/Lady%20M.png",
-            "L.M.D.C": "https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/LMDC.png",
-            "華御結": "https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/Hana-Musubi.png",
-            "LE CREUSET": "https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/Le%20Creuset.png",
-            "奇華": "https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/Kee%20Wah.png",
-            "甜姨姨": "https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/Aunty%20Sweet.png",
-            "永樂": "https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/Wing%20Lok.png",
-            "糕點時光": "https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/Time%20to%20Gold.png"
-        };
-
-        // 產品資料：名稱, SKU, 價格, 最少數量, 圖片連結
-        const RAW_PRODUCTS = `agnès b. $50 禮券,20081,42.5,10,https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/%E7%A6%AE%E5%8D%A1png/agnes50.png
-agnès b. $80 禮券,200082,68,10,https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/%E7%A6%AE%E5%8D%A1png/agnes80.png
-agnès b. $100 禮券,20083,85,10,https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/%E7%A6%AE%E5%8D%A1png/agnes100.png
-聖安娜 $25 禮券,10127,17.5,10,https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/%E7%A6%AE%E5%8D%A1png/st-honore25.png
-聖安娜 $50 禮券,10209,35,10,https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/%E7%A6%AE%E5%8D%A1png/st-honore50.png
-GODIVA $50 (粉紅封套),10344,42.5,10,https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/%E7%A6%AE%E5%8D%A1png/godiva50pink.png
-GODIVA $50 (深啡封套),10110,42.5,10,https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/%E7%A6%AE%E5%8D%A1png/godiva50brown.png
-GODIVA 軟雪糕及飲品禮券,10116,50.2,10,https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/%E7%A6%AE%E5%8D%A1png/godiva-icecream.png
-東海堂 $50 (花慶/經典版),10274,39.5,10,https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/%E7%A6%AE%E5%8D%A1png/arome50.png
-太興 $50 金豬禮券,10419,44,10,https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/%E7%A6%AE%E5%8D%A1png/taihing50.png
-鴻福堂 $50 (囍/粉紅),10278,36,10,https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/%E7%A6%AE%E5%8D%A1png/hft50.png
-Lady M US$80 禮券,10437,64,10,https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/%E7%A6%AE%E5%8D%A1png/ladym80.png
-華御結 $25 禮券,10446,21.25,10,https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/%E7%A6%AE%E5%8D%A1png/hanamusubi25.png
-LE CREUSET $100 禮券,10290,60,1,https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/%E7%A6%AE%E5%8D%A1png/lecreuset100.png
-奇華 $50 禮券,10461,40,10,https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/%E7%A6%AE%E5%8D%A1png/keewah50.png
-永樂 有麵子回禮小禮物,10422,30,100,https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/%E7%A6%AE%E5%8D%A1png/winglok-gift.png`;
+        const RAW_PRODUCTS = `agnès b. $50 禮券,20081,42.5,10,https://placehold.co/400x400/fecaca/991b1b?text=Agnes+B
+agnès b. $80 禮券,200082,68,10,https://placehold.co/400x400/fecaca/991b1b?text=Agnes+B
+agnès b. $100 禮券,20083,85,10,https://placehold.co/400x400/fecaca/991b1b?text=Agnes+B
+聖安娜 $25 禮券,10127,17.5,10,https://placehold.co/400x400/fed7aa/9a3412?text=Saint+Honore
+聖安娜 $50 禮券,10209,35,10,https://placehold.co/400x400/fed7aa/9a3412?text=Saint+Honore
+GODIVA $50 (粉紅封套),10344,42.5,10,https://placehold.co/400x400/fbcfe8/9d174d?text=GODIVA
+GODIVA $55 軟雪糕券,10116,50.2,10,https://placehold.co/400x400/fbcfe8/9d174d?text=Ice+Cream
+東海堂 $50 禮券,10274,39.5,10,https://placehold.co/400x400/bbf7d0/166534?text=Arome
+太興 $50 禮券,10419,44,10,https://placehold.co/400x400/fef08a/854d0e?text=Tai+Hing
+鴻福堂 $50 禮券,10278,36,10,https://placehold.co/400x400/fecaca/991b1b?text=HFT
+Lady M $80 禮券,10437,64,10,https://placehold.co/400x400/f5f5f5/171717?text=Lady+M
+華御結 $25 禮券,10446,21.25,10,https://placehold.co/400x400/fffbeb/92400e?text=Hana+Musubi
+LE CREUSET $100 禮券,10290,60,1,https://placehold.co/400x400/ffedd5/9a3412?text=Le+Creuset
+奇華 $50 禮券,10461,40,10,https://placehold.co/400x400/fee2e2/991b1b?text=Kee+Wah`;
 
         const App = () => {
             const [selectedBrand, setSelectedBrand] = useState(null);
@@ -83,7 +69,7 @@ LE CREUSET $100 禮券,10290,60,1,https://www.bespoke-wedding.com/sites/default/
             const qrCanvasRef = useRef(null);
 
             useEffect(() => {
-                const saved = localStorage.getItem('bespoke_orders_v3');
+                const saved = localStorage.getItem('order_history_v2');
                 if (saved) setOrderHistory(JSON.parse(saved));
             }, []);
 
@@ -92,12 +78,15 @@ LE CREUSET $100 禮券,10290,60,1,https://www.bespoke-wedding.com/sites/default/
                     const [name, sku, price, minQty, img] = line.split(',');
                     let brand = name.split(' ')[0];
                     if (brand.toUpperCase() === 'LE') brand = 'LE CREUSET';
-                    if (brand.toUpperCase() === 'LADY') brand = 'Lady M';
                     return { name, sku, price: parseFloat(price), minQty: parseInt(minQty), brand, img };
                 }), []
             );
 
-            const brands = useMemo(() => Object.keys(BRAND_IMAGES).sort(), []);
+            const brandList = useMemo(() => {
+                const bMap = {};
+                products.forEach(p => { if (!bMap[p.brand]) bMap[p.brand] = p.img; });
+                return Object.entries(bMap).map(([name, img]) => ({ name, img }));
+            }, [products]);
 
             const filteredProducts = useMemo(() => {
                 if (searchTerm) return products.filter(p => p.name.includes(searchTerm));
@@ -114,26 +103,12 @@ LE CREUSET $100 禮券,10290,60,1,https://www.bespoke-wedding.com/sites/default/
             const totalPrice = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
             const totalCount = Object.values(cart).reduce((a, b) => a + b, 0);
 
-            const updateQty = (sku, delta) => {
-                const product = products.find(p => p.sku === sku);
-                setCart(prev => {
-                    const cur = prev[sku] || 0;
-                    let next = cur + delta;
-                    if (cur === 0 && delta > 0) next = product.minQty;
-                    else if (cur === product.minQty && delta < 0) next = 0;
-                    else if (next > 0 && next < product.minQty) next = product.minQty;
-                    const updated = { ...prev };
-                    if (next <= 0) delete updated[sku]; else updated[sku] = next;
-                    return updated;
-                });
-            };
-
             const handleConfirmOrder = () => {
                 const id = Math.floor(10000000 + Math.random() * 90000000).toString();
                 const newOrder = { id, total: totalPrice, time: new Date().toLocaleString('zh-HK', { hour12: false }) };
-                const updated = [newOrder, ...orderHistory].slice(0, 10);
-                setOrderHistory(updated);
-                localStorage.setItem('bespoke_orders_v3', JSON.stringify(updated));
+                const updatedHistory = [newOrder, ...orderHistory].slice(0, 10);
+                setOrderHistory(updatedHistory);
+                localStorage.setItem('order_history_v2', JSON.stringify(updatedHistory));
                 setCurrentOrder(newOrder);
                 setShowPreview(false);
                 setShowQR(true);
@@ -141,29 +116,29 @@ LE CREUSET $100 禮券,10290,60,1,https://www.bespoke-wedding.com/sites/default/
 
             useEffect(() => {
                 if (showQR && currentOrder && qrCanvasRef.current) {
-                    new QRious({ element: qrCanvasRef.current, value: `BW-ORD-${currentOrder.id}`, size: 240, level: 'H' });
+                    new QRious({ element: qrCanvasRef.current, value: `ORDER:${currentOrder.id}`, size: 240 });
                 }
             }, [showQR, currentOrder]);
 
-            return React.createElement('div', { className: "min-h-screen max-w-lg mx-auto bg-slate-50 pb-32" },
-                // Header
-                React.createElement('header', { className: "bg-white p-5 sticky top-0 z-30 shadow-sm rounded-b-[2rem]" },
-                    React.createElement('div', { className: "flex justify-between items-center mb-5" },
+            return React.createElement('div', { className: "min-h-screen max-w-md mx-auto relative pb-40" },
+                // Header - 手機優化
+                React.createElement('header', { className: "bg-white p-5 sticky top-0 z-30 shadow-sm rounded-b-3xl" },
+                    React.createElement('div', { className: "flex justify-between items-center mb-4" },
                         React.createElement('h1', { 
-                            className: "text-2xl font-black text-rose-500 italic cursor-pointer",
-                            onClick: () => { setSelectedBrand(null); setSearchTerm(''); }
+                            onClick: () => { setSelectedBrand(null); setSearchTerm(''); },
+                            className: "text-2xl font-black text-rose-500 italic tracking-tighter cursor-pointer" 
                         }, "Bespoke Mall"),
                         React.createElement('button', { 
                             onClick: () => setShowHistory(true), 
-                            className: "bg-slate-900 text-white px-4 py-2 rounded-2xl text-xs font-bold active:scale-95 transition-transform" 
+                            className: "text-xs font-bold bg-slate-800 text-white px-4 py-2 rounded-full active:scale-90 transition-transform" 
                         }, "我的訂單")
                     ),
                     React.createElement('div', { className: "relative" },
-                        React.createElement('i', { className: "fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" }),
+                        React.createElement('i', { className: "fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" }),
                         React.createElement('input', {
                             type: "text",
-                            placeholder: "搜尋品牌或禮券...",
-                            className: "w-full bg-slate-100 border-none rounded-2xl pl-12 pr-5 py-4 text-sm focus:ring-2 focus:ring-rose-200 outline-none transition-all",
+                            placeholder: "搜尋品牌或產品...",
+                            className: "w-full bg-gray-100 pl-10 pr-4 py-3 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-rose-200 transition-all",
                             value: searchTerm,
                             onChange: e => setSearchTerm(e.target.value)
                         })
@@ -173,135 +148,124 @@ LE CREUSET $100 禮券,10290,60,1,https://www.bespoke-wedding.com/sites/default/
                 // 主內容
                 React.createElement('main', { className: "p-4" },
                     !selectedBrand && !searchTerm ? 
-                        React.createElement('div', { className: "grid grid-cols-2 gap-4 animate-up" },
-                            brands.map(bName => React.createElement('div', {
-                                key: bName,
-                                onClick: () => setSelectedBrand(bName),
-                                className: "brand-card bg-white p-4 shadow-sm border border-slate-100 flex flex-col items-center group"
+                        React.createElement('div', { className: "grid grid-cols-2 gap-3 animate-up" },
+                            brandList.map(b => React.createElement('div', {
+                                key: b.name,
+                                onClick: () => setSelectedBrand(b.name),
+                                className: "brand-card bg-white rounded-3xl shadow-sm border border-slate-100 pb-2"
                             },
-                                React.createElement('div', { className: "w-full aspect-square mb-3 overflow-hidden rounded-2xl bg-slate-50" },
-                                    React.createElement('img', { src: BRAND_IMAGES[bName], className: "w-full h-full object-contain group-hover:scale-110 transition-transform duration-500" })
-                                ),
-                                React.createElement('span', { className: "font-black text-slate-700 text-sm tracking-tight" }, bName)
+                                React.createElement('img', { src: b.img, className: "w-full aspect-square object-cover" }),
+                                React.createElement('div', { className: "p-2 text-center font-bold text-sm text-slate-700" }, b.name)
                             ))
                         ) : 
                         React.createElement('div', { className: "animate-up" },
                             !searchTerm && React.createElement('button', { 
                                 onClick: () => setSelectedBrand(null), 
-                                className: "mb-6 flex items-center gap-2 text-rose-500 font-black text-sm bg-white px-4 py-2 rounded-full shadow-sm" 
-                            }, "← 返回品牌清單"),
+                                className: "mb-4 flex items-center gap-2 text-rose-500 font-bold bg-rose-50 px-4 py-2 rounded-full" 
+                            }, "← 返回品牌"),
                             React.createElement('div', { className: "space-y-3" },
-                                filteredProducts.map(p => React.createElement('div', { 
-                                    key: p.sku, 
-                                    className: "product-card bg-white p-3 border border-slate-100 flex items-center gap-4 shadow-sm" 
-                                },
-                                    React.createElement('div', { className: "w-20 h-20 bg-slate-50 rounded-2xl overflow-hidden flex-shrink-0" },
-                                        React.createElement('img', { src: p.img, className: "w-full h-full object-cover" })
+                                filteredProducts.map(p => React.createElement('div', { key: p.sku, className: "product-card bg-white p-3 rounded-3xl border border-gray-100 flex items-center gap-4" },
+                                    React.createElement('img', { src: p.img, className: "w-16 h-16 rounded-2xl object-cover" }),
+                                    React.createElement('div', { className: "flex-1" },
+                                        React.createElement('div', { className: "text-sm font-bold text-slate-800 leading-tight" }, p.name),
+                                        React.createElement('div', { className: "text-rose-500 font-black mt-1" }, `$${p.price}`),
+                                        React.createElement('div', { className: "text-[10px] text-gray-400" }, `最少訂購: ${p.minQty}`)
                                     ),
-                                    React.createElement('div', { className: "flex-1 min-w-0" },
-                                        React.createElement('div', { className: "text-sm font-bold text-slate-800 leading-snug mb-1" }, p.name),
-                                        React.createElement('div', { className: "flex items-baseline gap-2" },
-                                            React.createElement('span', { className: "text-rose-500 font-black" }, `$${p.price}`),
-                                            React.createElement('span', { className: "text-[10px] text-slate-400" }, `最少 ${p.minQty}件`)
-                                        )
-                                    ),
-                                    React.createElement('div', { className: "flex items-center gap-3 bg-slate-50 p-1 rounded-full" },
-                                        React.createElement('button', { 
-                                            onClick: () => updateQty(p.sku, -1),
-                                            className: "w-8 h-8 rounded-full bg-white text-slate-400 shadow-sm flex items-center justify-center" 
-                                        }, "−"),
-                                        React.createElement('span', { className: "w-4 text-center font-black text-sm" }, cart[p.sku] || 0),
-                                        React.createElement('button', { 
-                                            onClick: () => updateQty(p.sku, 1),
-                                            className: "w-8 h-8 rounded-full bg-rose-500 text-white shadow-md flex items-center justify-center" 
-                                        }, "+")
+                                    React.createElement('div', { className: "flex items-center gap-2 bg-gray-50 p-1 rounded-full" },
+                                        React.createElement('button', { onClick: () => {
+                                            const cur = cart[p.sku] || 0;
+                                            if (cur === 0) return;
+                                            const next = cur <= p.minQty ? 0 : cur - 1;
+                                            setCart(prev => { const n = {...prev}; if(next===0) delete n[p.sku]; else n[p.sku]=next; return n; });
+                                        }, className: "w-9 h-9 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-400 active:bg-gray-200" }, "−"),
+                                        React.createElement('span', { className: "w-5 text-center font-black" }, cart[p.sku] || 0),
+                                        React.createElement('button', { onClick: () => {
+                                            const cur = cart[p.sku] || 0;
+                                            setCart({...cart, [p.sku]: cur === 0 ? p.minQty : cur + 1});
+                                        }, className: "w-9 h-9 rounded-full bg-rose-500 text-white shadow-md flex items-center justify-center active:bg-rose-600" }, "+")
                                     )
                                 ))
                             )
                         )
                 ),
 
-                // Footer
-                React.createElement('footer', { className: "fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md p-6 border-t flex justify-between items-center z-40 max-w-lg mx-auto rounded-t-[2.5rem] shadow-2xl" },
-                    React.createElement('div', null,
-                        React.createElement('div', { className: "text-[10px] text-slate-400 font-bold uppercase tracking-widest" }, "Estimated Total"),
-                        React.createElement('div', { className: "text-2xl font-black text-slate-900" }, `HK$ ${totalPrice.toLocaleString()}`)
-                    ),
-                    React.createElement('button', { 
-                        disabled: totalCount === 0,
-                        onClick: () => setShowPreview(true),
-                        className: `px-10 py-4 rounded-2xl font-black transition-all ${totalCount > 0 ? 'bg-slate-900 text-white shadow-xl active:scale-95' : 'bg-slate-100 text-slate-300'}`
-                    }, `預覽訂單 (${totalCount})`)
+                // Footer - 手機版浮動感
+                React.createElement('footer', { className: "fixed bottom-0 left-0 right-0 p-6 z-40 max-w-md mx-auto" },
+                    React.createElement('div', { className: "bg-white/90 backdrop-blur-lg p-5 border border-white/20 flex justify-between items-center shadow-2xl rounded-[2.5rem]" },
+                        React.createElement('div', null,
+                            React.createElement('div', { className: "text-[10px] text-gray-400 font-bold" }, "總金額估算"),
+                            React.createElement('div', { className: "text-2xl font-black text-slate-900" }, `HK$ ${totalPrice.toLocaleString()}`)
+                        ),
+                        React.createElement('button', { 
+                            disabled: totalCount === 0,
+                            onClick: () => setShowPreview(true),
+                            className: `px-8 py-4 rounded-2xl font-black transition-all ${totalCount > 0 ? 'bg-slate-900 text-white shadow-lg active:scale-95' : 'bg-gray-100 text-gray-300'}`
+                        }, `預覽 (${totalCount})`)
+                    )
                 ),
 
                 // 預覽彈窗
-                showPreview && React.createElement('div', { className: "fixed inset-0 bg-slate-900/60 z-50 flex items-end animate-up" },
-                    React.createElement('div', { className: "bg-white w-full max-w-lg mx-auto p-8 rounded-t-[3rem] shadow-2xl" },
-                        React.createElement('div', { className: "flex justify-between items-center mb-6" },
-                            React.createElement('h3', { className: "text-xl font-black" }, "核對訂單內容"),
-                            React.createElement('button', { onClick: () => setShowPreview(false), className: "text-slate-300" }, React.createElement('i', { className: "fas fa-times" }))
+                showPreview && React.createElement('div', { className: "fixed inset-0 bg-black/60 z-50 flex items-end" },
+                    React.createElement('div', { className: "bg-white w-full max-w-md mx-auto p-8 rounded-t-[3rem] animate-up shadow-2xl" },
+                        React.createElement('div', { className: "w-12 h-1 bg-gray-200 rounded-full mx-auto mb-6" }), // 手機拉柄感
+                        React.createElement('h3', { className: "text-xl font-black mb-6 flex justify-between items-center" }, 
+                            "核對訂單",
+                            React.createElement('span', { className: "text-sm text-gray-400" }, `${totalCount} 件產品`)
                         ),
-                        React.createElement('div', { className: "max-h-[30vh] overflow-y-auto mb-8 space-y-4 hide-scrollbar" },
-                            cartItems.map(item => React.createElement('div', { key: item.sku, className: "flex items-center gap-4" },
-                                React.createElement('img', { src: item.img, className: "w-12 h-12 rounded-xl object-cover" }),
-                                React.createElement('div', { className: "flex-1" },
+                        React.createElement('div', { className: "max-h-64 overflow-y-auto mb-6 space-y-4 hide-scrollbar" },
+                            cartItems.map(item => React.createElement('div', { key: item.sku, className: "flex justify-between items-center" },
+                                React.createElement('div', null,
                                     React.createElement('div', { className: "text-sm font-bold" }, item.name),
-                                    React.createElement('div', { className: "text-xs text-rose-500 font-bold" }, `$${item.price} x ${item.quantity}`)
+                                    React.createElement('div', { className: "text-xs text-gray-400" }, `$${item.price} x ${item.quantity}`)
                                 ),
-                                React.createElement('div', { className: "font-black" }, `$${(item.price * item.quantity).toLocaleString()}`)
+                                React.createElement('span', { className: "font-black" }, `$${(item.price * item.quantity).toLocaleString()}`)
                             ))
                         ),
-                        React.createElement('div', { className: "p-6 bg-rose-50 rounded-[2rem] mb-8 border border-rose-100" },
-                            React.createElement('div', { className: "flex justify-between items-center mb-2 font-black text-rose-600" },
-                                React.createElement('span', null, "總計金額"),
-                                React.createElement('span', { className: "text-2xl" }, `HK$ ${totalPrice.toLocaleString()}`)
+                        React.createElement('div', { className: "p-5 bg-rose-50 rounded-3xl mb-6 border border-rose-100" },
+                            React.createElement('div', { className: "flex justify-between font-black text-rose-600 mb-1" },
+                                React.createElement('span', null, "合計金額"),
+                                React.createElement('span', { className: "text-xl" }, `HK$ ${totalPrice.toLocaleString()}`)
                             ),
-                            React.createElement('p', { className: "text-[11px] text-rose-500 font-bold leading-relaxed" }, 
-                                React.createElement('i', { className: "fas fa-exclamation-circle mr-1" }),
-                                "此價錢為暫定價格，於付款時收銀同事將提供相應的專屬優惠"
-                            )
+                            React.createElement('p', { className: "text-[10px] text-rose-400 font-medium" }, "⚠ 此價錢為暫定價格，於付款時收銀同事將提供相應的專屬優惠")
                         ),
-                        React.createElement('button', { 
-                            onClick: handleConfirmOrder,
-                            className: "w-full bg-rose-500 text-white py-5 rounded-2xl font-black text-lg shadow-xl active:scale-95 transition-all" 
-                        }, "確認訂單並顯示 QR Code")
+                        React.createElement('button', { onClick: handleConfirmOrder, className: "w-full bg-rose-500 text-white py-5 rounded-2xl font-black text-lg shadow-xl active:scale-95 transition-all" }, "確認訂單"),
+                        React.createElement('button', { onClick: () => setShowPreview(false), className: "w-full py-4 text-gray-400 text-sm font-bold" }, "返回修改")
                     )
                 ),
 
-                // 歷史紀錄
-                showHistory && React.createElement('div', { className: "fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-6 animate-up" },
-                    React.createElement('div', { className: "bg-white w-full rounded-[2.5rem] p-8 max-h-[70vh] flex flex-col" },
-                        React.createElement('h3', { className: "font-black text-xl mb-6" }, "最近 10 次訂單"),
+                // 歷史紀錄彈窗 (我的訂單)
+                showHistory && React.createElement('div', { className: "fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-6" },
+                    React.createElement('div', { className: "bg-white w-full max-w-sm rounded-[2.5rem] p-8 max-h-[75vh] flex flex-col shadow-2xl" },
+                        React.createElement('h3', { className: "font-black text-xl mb-6" }, "我的訂單"),
                         React.createElement('div', { className: "flex-1 overflow-y-auto space-y-3 hide-scrollbar" },
                             orderHistory.length > 0 ? orderHistory.map(o => React.createElement('div', { 
-                                key: o.id,
+                                key: o.id, 
                                 onClick: () => { setCurrentOrder(o); setShowHistory(false); setShowQR(true); },
-                                className: "p-4 bg-slate-50 rounded-2xl border border-slate-100 cursor-pointer active:bg-slate-100 transition-colors"
+                                className: "p-4 bg-gray-50 rounded-2xl border border-gray-100 active:bg-gray-100" 
                             },
-                                React.createElement('div', { className: "flex justify-between text-[10px] text-slate-400 font-bold mb-1" }, 
+                                React.createElement('div', { className: "flex justify-between text-[10px] text-gray-400 font-bold mb-1" }, 
                                     React.createElement('span', null, `ID: ${o.id}`), 
                                     React.createElement('span', null, o.time)
                                 ),
-                                React.createElement('div', { className: "font-black text-lg text-slate-800" }, `HK$ ${o.total.toLocaleString()}`)
-                            )) : React.createElement('p', { className: "text-center text-slate-400 py-10 font-bold" }, "尚無下單紀錄")
+                                React.createElement('div', { className: "font-black text-lg" }, `HK$ ${o.total.toLocaleString()}`)
+                            )) : React.createElement('p', { className: "text-center text-gray-400 py-10" }, "暫無紀錄")
                         ),
-                        React.createElement('button', { onClick: () => setShowHistory(false), className: "mt-6 text-slate-400 font-black text-sm" }, "返回首頁")
+                        React.createElement('button', { onClick: () => setShowHistory(false), className: "mt-6 w-full py-3 bg-gray-100 rounded-xl text-gray-500 font-bold" }, "關閉")
                     )
                 ),
 
-                // QR 碼
-                showQR && React.createElement('div', { className: "fixed inset-0 bg-slate-900/95 z-[60] flex items-center justify-center p-6" },
-                    React.createElement('div', { className: "bg-white w-full rounded-[3.5rem] p-10 text-center relative" },
-                        React.createElement('button', { onClick: () => setShowQR(false), className: "absolute top-8 right-8 text-slate-300" }, React.createElement('i', { className: "fas fa-times text-xl" })),
-                        React.createElement('h3', { className: "font-black text-xl mb-8" }, "請出示給收銀同事"),
-                        React.createElement('div', { className: "bg-slate-50 p-6 rounded-[3rem] inline-block mb-8 shadow-inner" },
-                            React.createElement('canvas', { ref: qrCanvasRef })
+                // QR 碼彈窗
+                showQR && React.createElement('div', { className: "fixed inset-0 bg-slate-900/98 z-[60] flex items-center justify-center p-6" },
+                    React.createElement('div', { className: "bg-white w-full max-w-xs rounded-[3.5rem] p-10 text-center shadow-2xl" },
+                        React.createElement('h3', { className: "font-black text-lg mb-8" }, "請出示給收銀同事"),
+                        React.createElement('div', { className: "bg-white p-2 inline-block mb-8" },
+                            React.createElement('canvas', { ref: qrCanvasRef, className: "mx-auto" })
                         ),
-                        React.createElement('div', { className: "text-3xl font-black tracking-widest text-slate-900 mb-10" }, currentOrder?.id),
+                        React.createElement('div', { className: "text-2xl font-black mb-10 tracking-widest text-slate-800" }, currentOrder?.id),
                         React.createElement('button', { 
-                            onClick: () => { setShowQR(false); setCart({}); setSelectedBrand(null); },
-                            className: "w-full bg-rose-500 text-white py-5 rounded-2xl font-black shadow-lg" 
-                        }, "完成交易並返回")
+                            onClick: () => { setShowQR(false); setCart({}); setSelectedBrand(null); }, 
+                            className: "w-full bg-rose-500 text-white py-4 rounded-2xl font-black shadow-lg" 
+                        }, "返回首頁")
                     )
                 )
             );
