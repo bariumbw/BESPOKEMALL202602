@@ -38,7 +38,6 @@
         import React, { useState, useMemo, useRef, useEffect } from 'react';
         import ReactDOM from 'react-dom/client';
 
-        // 統一將所有 Godiva 改為大寫開頭或全大寫以作匹配
         const RAW_PRODUCTS = `agnès b. $50 禮券,20081,42.5,10
 agnès b. $80 禮券,200082,68,10
 agnès b. $100 禮券,20083,85,10
@@ -86,9 +85,15 @@ Lady M 女王棉花餅,10388,23,50
             const products = useMemo(() => 
                 RAW_PRODUCTS.trim().split('\n').map(line => {
                     const [name, sku, price, minQty] = line.split(',');
-                    // 邏輯處理：如果品牌是小寫 Godiva，統一轉為大寫 GODIVA
                     let brand = name.split(' ')[0];
-                    if (brand.toUpperCase() === 'GODIVA') brand = 'GODIVA';
+                    
+                    // 品牌縮寫轉換邏輯
+                    const upperBrand = brand.toUpperCase();
+                    if (upperBrand === 'LE') brand = 'LE CREUSET';
+                    else if (upperBrand === 'LADY') brand = 'Lady M';
+                    else if (upperBrand === 'AGNÈS' || upperBrand === 'AGNES') brand = 'agnès b.';
+                    else if (upperBrand === 'GODIVA') brand = 'GODIVA';
+
                     return { name, sku, price: parseFloat(price) || 0, minQty: parseInt(minQty) || 1, brand };
                 }), []
             );
