@@ -64,7 +64,6 @@
             { category: "Gift Card", brand: "華御結", name: "華御結 $25禮券", sku: "10446", orig: 25, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/hana25.png", tiers: [{q:10, d:0.88}, {q:50, d:0.85}] },
             { category: "Gift Card", brand: "LE CREUSET", name: "LC $100禮券", sku: "10290", orig: 100, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/le%20100.webp", tiers: [{q:1, d:0.6}] },
             { category: "Gift Card", brand: "奇華", name: "奇華 $50禮券", sku: "10461", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/50.png", tiers: [{q:10, d:0.8}] },
-            { category: "Gift Card", brand: "L.M.D.C", name: "LMDC $50現金券", sku: "10440", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/lmdc.png", tiers: [{q:10, d:0.8}] },
             { category: "Favor", brand: "agnès b.", name: "幸運曲奇圓筒禮盒", sku: "10370", orig: 46, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/婚禮回禮圓筒禮盒幸運曲奇(2個).png", tiers: [{q:10, d:0.85}] },
             { category: "Favor", brand: "GODIVA", name: "雅致巧克力鐵盒2顆", sku: "10135", orig: 59, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/go雅致巧克力鐵盒2顆裝.png", tiers: [{q:10, d:0.85}] },
             { category: "Favor", brand: "Lady M", name: "女王棉花餅", sku: "10388", orig: 25, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/ladymb1.jpg", tiers: [{q:10, d:1.0}, {q:50, d:0.92}] },
@@ -197,6 +196,7 @@
                             React.createElement('div', { className: "space-y-4" },
                                 PRODUCT_DEFS.filter(p => searchTerm ? (p.name.includes(searchTerm) || p.sku.includes(searchTerm) || p.brand.includes(searchTerm)) : (p.brand === selectedBrand && p.category === activeTab)).map(p => {
                                     const { price } = getPrice(p.sku, cart[p.sku]);
+                                    // 動態層遞價錢顯示
                                     const tierInfo = [...p.tiers].sort((a,b) => a.q - b.q).map((t, idx, arr) => {
                                         const nextQ = arr[idx+1] ? arr[idx+1].q - 1 : null;
                                         const pVal = Math.round(p.orig * t.d * 100) / 100;
@@ -209,6 +209,7 @@
                                         React.createElement('img', { src: p.img, className: "w-20 h-20 rounded-xl object-cover" }),
                                         React.createElement('div', { className: "flex-1 min-w-0" },
                                             React.createElement('div', { className: "text-sm font-black mb-1 line-clamp-1" }, p.name),
+                                            // 層遞價錢小字
                                             React.createElement('div', { className: "text-[9px] text-rose-400 font-bold mb-1 leading-tight" }, tierInfo.map(info => React.createElement('div', { key: info }, info))),
                                             React.createElement('div', { className: "text-rose-500 font-black text-lg" }, `$${price}`),
                                             React.createElement('div', { className: "text-[10px] text-gray-400 flex gap-2" }, 
@@ -244,6 +245,7 @@
                         }, `預覽訂單 (${totalCount})`)
                     )
                 ),
+                // 預覽訂單彈出視窗
                 showPreview && React.createElement('div', { className: "fixed inset-0 bg-black/80 z-50 flex items-end justify-center" },
                     React.createElement('div', { className: "bg-white w-full max-w-md p-8 rounded-t-[3rem] animate-up shadow-2xl" },
                         React.createElement('h3', { className: "text-2xl font-black mb-6" }, "核對訂單"),
@@ -256,6 +258,7 @@
                                 React.createElement('span', { className: "font-black" }, `$${(item.currentPrice * item.qty).toLocaleString()}`)
                             ))
                         ),
+                        // 合計金額與提示小字
                         React.createElement('div', { className: "border-t pt-4 mb-6" },
                             React.createElement('div', { className: "flex justify-between items-end" },
                                 React.createElement('span', { className: "text-sm font-bold text-gray-500" }, "合計金額"),
