@@ -9,59 +9,46 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@300;400;500;700;900&display=swap');
-        body { font-family: 'Noto+Sans+HK', -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; scroll-behavior: smooth; }
-        .brand-card { transition: all 0.2s ease; overflow: hidden; }
-        .brand-card:active { transform: scale(0.95); }
-        .product-card { transition: all 0.2s ease; }
-        .product-card:active { transform: scale(0.98); }
-        .img-placeholder { background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%); }
-        .animate-fade-in { animation: fadeIn 0.2s ease-out; }
-        .animate-slide-up { animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        body { font-family: 'Noto+Sans+HK', -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+        .brand-card { transition: transform 0.2s; overflow: hidden; }
+        .brand-card:active { transform: scale(0.96); }
+        .product-card { transition: background-color 0.2s; }
+        .product-card:active { background-color: #f8fafc; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .animate-up { animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
     <script type="importmap">
     {
       "imports": {
         "react": "https://esm.sh/react@^19.2.3",
-        "react-dom/client": "https://esm.sh/react-dom@^19.2.3/client",
-        "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-        "react/": "https://esm.sh/react@^19.2.3/"
+        "react-dom/client": "https://esm.sh/react-dom@^19.2.3/client"
       }
     }
     </script>
 </head>
-<body class="bg-gray-50 text-slate-900 overflow-x-hidden">
+<body class="bg-gray-50 text-slate-900">
     <div id="root"></div>
 
     <script type="module">
         import React, { useState, useMemo, useRef, useEffect } from 'react';
         import ReactDOM from 'react-dom/client';
 
-        // 資料結構：名稱, SKU, 價格, 最少數量, 圖片連結 (若無則使用 placeholder)
+        // 產品資料 (含 BespokeMall 風格圖片)
         const RAW_PRODUCTS = `agnès b. $50 禮券,20081,42.5,10,https://placehold.co/400x400/fecaca/991b1b?text=Agnes+B
 agnès b. $80 禮券,200082,68,10,https://placehold.co/400x400/fecaca/991b1b?text=Agnes+B
 agnès b. $100 禮券,20083,85,10,https://placehold.co/400x400/fecaca/991b1b?text=Agnes+B
 聖安娜 $25 禮券,10127,17.5,10,https://placehold.co/400x400/fed7aa/9a3412?text=Saint+Honore
 聖安娜 $50 禮券,10209,35,10,https://placehold.co/400x400/fed7aa/9a3412?text=Saint+Honore
 GODIVA $50 (粉紅封套),10344,42.5,10,https://placehold.co/400x400/fbcfe8/9d174d?text=GODIVA
-GODIVA $50 (深啡封套),10110,42.5,10,https://placehold.co/400x400/fbcfe8/9d174d?text=GODIVA
-GODIVA 軟雪糕及飲品禮券,10116,50.2,10,https://placehold.co/400x400/fbcfe8/9d174d?text=Ice+Cream
-GODIVA $100 禮券,SKU_G100,85,10,https://placehold.co/400x400/fbcfe8/9d174d?text=GODIVA
-東海堂 $50 (花慶/經典版),10274,39.5,10,https://placehold.co/400x400/bbf7d0/166534?text=Arome
-太興 $50 金豬禮券,10419,44,10,https://placehold.co/400x400/fef08a/854d0e?text=Tai+Hing
-鴻福堂 $50 (囍/粉紅),10278,36,10,https://placehold.co/400x400/fecaca/991b1b?text=HFT
-Lady M US$80 禮券,10437,64,10,https://placehold.co/400x400/f5f5f5/171717?text=Lady+M
-Lady M US$150 禮券,10430,120,10,https://placehold.co/400x400/f5f5f5/171717?text=Lady+M
-L.M.D.C $50 禮券,10376,42,10,https://placehold.co/400x400/e9d5ff/6b21a8?text=LMDC
-L.M.D.C $100 禮券,10380,85,5,https://placehold.co/400x400/e9d5ff/6b21a8?text=LMDC
+GODIVA $55 軟雪糕券,10116,50.2,10,https://placehold.co/400x400/fbcfe8/9d174d?text=Ice+Cream
+東海堂 $50 禮券,10274,39.5,10,https://placehold.co/400x400/bbf7d0/166534?text=Arome
+太興 $50 禮券,10419,44,10,https://placehold.co/400x400/fef08a/854d0e?text=Tai+Hing
+鴻福堂 $50 禮券,10278,36,10,https://placehold.co/400x400/fecaca/991b1b?text=HFT
+Lady M $80 禮券,10437,64,10,https://placehold.co/400x400/f5f5f5/171717?text=Lady+M
 華御結 $25 禮券,10446,21.25,10,https://placehold.co/400x400/fffbeb/92400e?text=Hana+Musubi
 LE CREUSET $100 禮券,10290,60,1,https://placehold.co/400x400/ffedd5/9a3412?text=Le+Creuset
-奇華 $50 禮券,10461,40,10,https://placehold.co/400x400/fee2e2/991b1b?text=Kee+Wah
-agnès b. 回禮圓筒禮盒,10370,39.1,50,https://placehold.co/400x400/fecaca/991b1b?text=Gift+Box
-GODIVA 雅致巧克力鐵盒 (2顆),10135,50.2,100,https://placehold.co/400x400/fbcfe8/9d174d?text=Chocolate
-永樂 有麵子回禮小禮物,10422,30,100,https://placehold.co/400x400/fef9c3/854d0e?text=Noodles`;
+奇華 $50 禮券,10461,40,10,https://placehold.co/400x400/fee2e2/991b1b?text=Kee+Wah`;
 
         const App = () => {
             const [selectedBrand, setSelectedBrand] = useState(null);
@@ -76,7 +63,7 @@ GODIVA 雅致巧克力鐵盒 (2顆),10135,50.2,100,https://placehold.co/400x400/
             const qrCanvasRef = useRef(null);
 
             useEffect(() => {
-                const saved = localStorage.getItem('order_history');
+                const saved = localStorage.getItem('order_history_v2');
                 if (saved) setOrderHistory(JSON.parse(saved));
             }, []);
 
@@ -84,25 +71,19 @@ GODIVA 雅致巧克力鐵盒 (2顆),10135,50.2,100,https://placehold.co/400x400/
                 RAW_PRODUCTS.trim().split('\n').map(line => {
                     const [name, sku, price, minQty, img] = line.split(',');
                     let brand = name.split(' ')[0];
-                    const upperBrand = brand.toUpperCase();
-                    if (upperBrand === 'LE') brand = 'LE CREUSET';
-                    else if (upperBrand === 'LADY') brand = 'Lady M';
-                    else if (upperBrand === 'AGNÈS' || upperBrand === 'AGNES') brand = 'agnès b.';
-                    return { name, sku, price: parseFloat(price) || 0, minQty: parseInt(minQty) || 1, brand, img };
+                    if (brand.toUpperCase() === 'LE') brand = 'LE CREUSET';
+                    return { name, sku, price: parseFloat(price), minQty: parseInt(minQty), brand, img };
                 }), []
             );
 
-            // 提取品牌與對應的縮圖（取該品牌第一個產品的圖）
             const brandList = useMemo(() => {
                 const bMap = {};
-                products.forEach(p => {
-                    if (!bMap[p.brand]) bMap[p.brand] = p.img;
-                });
-                return Object.entries(bMap).map(([name, img]) => ({ name, img })).sort((a, b) => a.name.localeCompare(b.name));
+                products.forEach(p => { if (!bMap[p.brand]) bMap[p.brand] = p.img; });
+                return Object.entries(bMap).map(([name, img]) => ({ name, img }));
             }, [products]);
 
             const filteredProducts = useMemo(() => {
-                if (searchTerm) return products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+                if (searchTerm) return products.filter(p => p.name.includes(searchTerm));
                 return products.filter(p => p.brand === selectedBrand);
             }, [selectedBrand, searchTerm, products]);
 
@@ -116,203 +97,139 @@ GODIVA 雅致巧克力鐵盒 (2顆),10135,50.2,100,https://placehold.co/400x400/
             const totalPrice = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
             const totalCount = Object.values(cart).reduce((a, b) => a + b, 0);
 
-            useEffect(() => {
-                if (showQR && currentOrder && qrCanvasRef.current) {
-                    const qrData = `ORDER:${currentOrder.id}|TOTAL:${currentOrder.total}`;
-                    new QRious({ element: qrCanvasRef.current, value: qrData, size: 240, level: 'H' });
-                }
-            }, [showQR, currentOrder]);
-
-            const updateQty = (sku, delta) => {
-                const product = products.find(p => p.sku === sku);
-                setCart(prev => {
-                    const current = prev[sku] || 0;
-                    let newVal = current + delta;
-                    if (current === 0 && delta > 0) newVal = product.minQty;
-                    else if (current === product.minQty && delta < 0) newVal = 0;
-                    else if (newVal > 0 && newVal < product.minQty) newVal = product.minQty;
-                    const next = { ...prev };
-                    if (newVal <= 0) delete next[sku]; else next[sku] = newVal;
-                    return next;
-                });
-            };
-
             const handleConfirmOrder = () => {
                 const id = Math.floor(10000000 + Math.random() * 90000000).toString();
-                const now = new Date();
-                const timeStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
-                const newOrder = { id, total: totalPrice, time: timeStr };
+                const newOrder = { id, total: totalPrice, time: new Date().toLocaleString('zh-HK', { hour12: false }) };
                 const updatedHistory = [newOrder, ...orderHistory].slice(0, 10);
                 setOrderHistory(updatedHistory);
-                localStorage.setItem('order_history', JSON.stringify(updatedHistory));
+                localStorage.setItem('order_history_v2', JSON.stringify(updatedHistory));
                 setCurrentOrder(newOrder);
                 setShowPreview(false);
                 setShowQR(true);
             };
 
-            return React.createElement('div', { className: "min-h-screen max-w-lg mx-auto bg-gray-50 pb-32" },
+            useEffect(() => {
+                if (showQR && currentOrder && qrCanvasRef.current) {
+                    new QRious({ element: qrCanvasRef.current, value: `ORDER:${currentOrder.id}`, size: 200 });
+                }
+            }, [showQR, currentOrder]);
+
+            return React.createElement('div', { className: "min-h-screen pb-32" },
                 // Header
-                React.createElement('header', { className: "sticky top-0 z-40 bg-white border-b px-5 py-4 shadow-sm" },
-                    React.createElement('div', { className: "flex justify-between items-start mb-4" },
-                        React.createElement('h1', { 
-                            className: "text-2xl font-black text-rose-500 italic cursor-pointer",
-                            onClick: () => { setSelectedBrand(null); setSearchTerm(''); }
-                        }, "Bespoke Wedding"),
-                        React.createElement('button', {
-                            onClick: () => setShowHistory(true),
-                            className: "bg-slate-800 text-white px-3 py-2 rounded-xl text-xs font-bold active:scale-95 transition-all"
-                        }, "歷史紀錄")
+                React.createElement('header', { className: "bg-white p-5 sticky top-0 z-30 shadow-sm" },
+                    React.createElement('div', { className: "flex justify-between items-center mb-4" },
+                        React.createElement('h1', { className: "text-xl font-black text-rose-500 italic" }, "Bespoke Wedding"),
+                        React.createElement('button', { onClick: () => setShowHistory(true), className: "text-xs font-bold bg-slate-800 text-white px-3 py-2 rounded-full" }, "最近 10 次訂單")
                     ),
-                    React.createElement('div', { className: "relative" },
-                        React.createElement('i', { className: "fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" }),
-                        React.createElement('input', {
-                            type: "text",
-                            placeholder: "搜尋產品...",
-                            value: searchTerm,
-                            onChange: e => setSearchTerm(e.target.value),
-                            className: "w-full bg-gray-100 border-none rounded-2xl pl-11 pr-5 py-3 text-sm focus:ring-2 focus:ring-rose-200 outline-none transition-all"
-                        })
-                    )
+                    React.createElement('input', {
+                        type: "text",
+                        placeholder: "搜尋品牌或產品...",
+                        className: "w-full bg-gray-100 p-3 rounded-2xl text-sm outline-none",
+                        value: searchTerm,
+                        onChange: e => setSearchTerm(e.target.value)
+                    })
                 ),
 
                 // 主內容
                 React.createElement('main', { className: "p-4" },
-                    !selectedBrand && !searchTerm && React.createElement('div', { className: "grid grid-cols-2 gap-4 animate-fade-in" },
-                        brandList.map(brand => {
-                            const brandCount = Object.entries(cart).filter(([sku]) => products.find(p => p.sku === sku)?.brand === brand.name).length;
-                            return React.createElement('div', {
-                                key: brand.name,
-                                onClick: () => setSelectedBrand(brand.name),
-                                className: "brand-card bg-white rounded-[2.5rem] shadow-sm border border-slate-100 relative group"
+                    !selectedBrand && !searchTerm ? 
+                        React.createElement('div', { className: "grid grid-cols-2 gap-4 animate-up" },
+                            brandList.map(b => React.createElement('div', {
+                                key: b.name,
+                                onClick: () => setSelectedBrand(b.name),
+                                className: "brand-card bg-white rounded-3xl shadow-sm border border-slate-100"
                             },
-                                // 品牌圖片容器
-                                React.createElement('div', { className: "aspect-square w-full overflow-hidden" },
-                                    React.createElement('img', { 
-                                        src: brand.img, 
-                                        className: "w-full h-full object-cover group-hover:scale-110 transition-transform duration-500",
-                                        alt: brand.name 
-                                    })
-                                ),
-                                React.createElement('div', { className: "p-4 text-center bg-white" },
-                                    React.createElement('span', { className: "font-black text-slate-700 text-sm tracking-tight" }, brand.name)
-                                ),
-                                brandCount > 0 && React.createElement('span', { className: "absolute top-3 right-3 bg-rose-500 text-white text-[10px] w-6 h-6 rounded-full flex items-center justify-center font-bold border-2 border-white" }, brandCount)
-                            );
-                        })
-                    ),
-
-                    (selectedBrand || searchTerm) && React.createElement('div', { className: "animate-fade-in" },
-                        !searchTerm && React.createElement('button', {
-                            onClick: () => setSelectedBrand(null),
-                            className: "flex items-center gap-2 text-rose-500 font-bold text-sm mb-6 bg-rose-50 px-4 py-2 rounded-full active:scale-95 transition-all"
-                        }, "← 返回清單"),
-
-                        React.createElement('div', { className: "space-y-4" },
-                            filteredProducts.map(p => React.createElement('div', {
-                                key: p.sku,
-                                className: "product-card bg-white p-3 rounded-[2rem] shadow-sm border border-gray-100 flex items-center gap-4"
-                            },
-                                // 產品圖片
-                                React.createElement('div', { className: "w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0 bg-gray-50 border border-gray-50" },
-                                    React.createElement('img', { src: p.img, className: "w-full h-full object-cover", alt: p.name })
-                                ),
-                                React.createElement('div', { className: "flex-1 min-w-0" },
-                                    React.createElement('h4', { className: "text-sm font-bold text-slate-800 leading-snug mb-1 truncate" }, p.name),
-                                    React.createElement('div', { className: "flex items-center gap-2" },
-                                        React.createElement('span', { className: "text-rose-600 font-black" }, `$${p.price}`),
-                                        React.createElement('span', { className: "text-[9px] text-gray-400" }, `最少 ${p.minQty}件`)
-                                    )
-                                ),
-                                React.createElement('div', { className: "flex items-center space-x-2 bg-slate-50 p-1 rounded-full" },
-                                    React.createElement('button', { onClick: () => updateQty(p.sku, -1), className: "w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-xs text-slate-400" }, "−"),
-                                    React.createElement('span', { className: "font-black text-xs w-5 text-center" }, cart[p.sku] || 0),
-                                    React.createElement('button', { onClick: () => updateQty(p.sku, 1), className: "w-8 h-8 rounded-full bg-rose-500 text-white shadow-md flex items-center justify-center text-xs" }, "+")
-                                )
+                                React.createElement('img', { src: b.img, className: "w-full aspect-square object-cover" }),
+                                React.createElement('div', { className: "p-3 text-center font-bold text-sm" }, b.name)
                             ))
+                        ) : 
+                        React.createElement('div', { className: "animate-up" },
+                            !searchTerm && React.createElement('button', { onClick: () => setSelectedBrand(null), className: "mb-4 text-rose-500 font-bold" }, "← 返回品牌"),
+                            React.createElement('div', { className: "space-y-3" },
+                                filteredProducts.map(p => React.createElement('div', { key: p.sku, className: "product-card bg-white p-3 rounded-2xl border flex items-center gap-3" },
+                                    React.createElement('img', { src: p.img, className: "w-16 h-16 rounded-xl object-cover" }),
+                                    React.createElement('div', { className: "flex-1" },
+                                        React.createElement('div', { className: "text-sm font-bold" }, p.name),
+                                        React.createElement('div', { className: "text-rose-500 font-black" }, `$${p.price}`)
+                                    ),
+                                    React.createElement('div', { className: "flex items-center gap-2" },
+                                        React.createElement('button', { onClick: () => {
+                                            const cur = cart[p.sku] || 0;
+                                            if (cur === 0) return;
+                                            const next = cur <= p.minQty ? 0 : cur - 1;
+                                            setCart(prev => { const n = {...prev}; if(next===0) delete n[p.sku]; else n[p.sku]=next; return n; });
+                                        }, className: "w-8 h-8 rounded-full bg-gray-100" }, "−"),
+                                        React.createElement('span', { className: "w-4 text-center font-bold" }, cart[p.sku] || 0),
+                                        React.createElement('button', { onClick: () => {
+                                            const cur = cart[p.sku] || 0;
+                                            setCart({...cart, [p.sku]: cur === 0 ? p.minQty : cur + 1});
+                                        }, className: "w-8 h-8 rounded-full bg-rose-500 text-white" }, "+")
+                                    )
+                                ))
+                            )
                         )
-                    )
                 ),
 
                 // Footer
-                React.createElement('footer', { className: "fixed bottom-0 left-0 right-0 bg-white border-t p-5 z-40 max-w-lg mx-auto rounded-t-[2.5rem] shadow-[0_-10px_30px_rgba(0,0,0,0.05)]" },
-                    React.createElement('div', { className: "flex justify-between items-center" },
-                        React.createElement('div', null,
-                            React.createElement('span', { className: "text-gray-400 text-[10px] font-bold block" }, "估計金額"),
-                            React.createElement('span', { className: "text-2xl font-black text-slate-900" }, `HK$ ${totalPrice.toLocaleString()}`)
-                        ),
-                        React.createElement('button', {
-                            onClick: () => totalCount > 0 && setShowPreview(true),
-                            disabled: totalCount === 0,
-                            className: `px-10 py-4 rounded-2xl font-bold transition-all ${totalCount > 0 ? 'bg-slate-900 text-white shadow-xl active:scale-95' : 'bg-gray-100 text-gray-300'}`
-                        }, "查看預覽", totalCount > 0 && ` (${totalCount})`)
-                    )
+                React.createElement('footer', { className: "fixed bottom-0 left-0 right-0 bg-white p-5 border-t flex justify-between items-center shadow-lg" },
+                    React.createElement('div', null,
+                        React.createElement('div', { className: "text-xs text-gray-400" }, "總金額估算"),
+                        React.createElement('div', { className: "text-xl font-black" }, `HK$ ${totalPrice}`)
+                    ),
+                    React.createElement('button', { 
+                        disabled: totalCount === 0,
+                        onClick: () => setShowPreview(true),
+                        className: `px-8 py-3 rounded-2xl font-bold ${totalCount > 0 ? 'bg-slate-900 text-white' : 'bg-gray-100 text-gray-300'}`
+                    }, `預覽訂單 (${totalCount})`)
                 ),
 
-                // 預覽 Modal (簡化圖片顯示)
-                showPreview && React.createElement('div', { className: "fixed inset-0 bg-black/60 z-50 flex items-end animate-fade-in" },
-                    React.createElement('div', { className: "bg-white w-full max-w-lg mx-auto rounded-t-[3rem] p-8 shadow-2xl animate-slide-up" },
-                        React.createElement('div', { className: "flex justify-between items-center mb-6" },
-                            React.createElement('h3', { className: "text-xl font-black text-slate-800" }, "核對清單"),
-                            React.createElement('button', { onClick: () => setShowPreview(false), className: "text-gray-300" }, "✕")
-                        ),
-                        React.createElement('div', { className: "max-h-[35vh] overflow-y-auto mb-6 space-y-4 hide-scrollbar" },
-                            cartItems.map(item => React.createElement('div', { key: item.sku, className: "flex items-center gap-4" },
-                                React.createElement('img', { src: item.img, className: "w-12 h-12 rounded-lg object-cover border" }),
-                                React.createElement('div', { className: "flex-1" },
-                                    React.createElement('h5', { className: "text-sm font-bold text-slate-700" }, item.name),
-                                    React.createElement('span', { className: "text-xs text-rose-500" }, `$${item.price} x ${item.quantity}`)
-                                ),
-                                React.createElement('span', { className: "font-black text-slate-900" }, `$${(item.price * item.quantity).toLocaleString()}`)
+                // 預覽彈窗
+                showPreview && React.createElement('div', { className: "fixed inset-0 bg-black/50 z-50 flex items-end" },
+                    React.createElement('div', { className: "bg-white w-full p-8 rounded-t-3xl animate-up" },
+                        React.createElement('h3', { className: "text-lg font-black mb-4" }, "核對清單"),
+                        React.createElement('div', { className: "max-h-60 overflow-y-auto mb-6 space-y-3" },
+                            cartItems.map(item => React.createElement('div', { key: item.sku, className: "flex justify-between text-sm" },
+                                React.createElement('span', null, `${item.name} x ${item.quantity}`),
+                                React.createElement('span', { className: "font-bold" }, `$${item.price * item.quantity}`)
                             ))
                         ),
-                        React.createElement('div', { className: "mb-8 p-5 bg-rose-50 rounded-3xl border border-rose-100" },
-                            React.createElement('div', { className: "flex justify-between items-center mb-2" },
-                                React.createElement('span', { className: "font-bold text-rose-700" }, "合計金額"),
-                                React.createElement('span', { className: "text-2xl font-black text-rose-600" }, `HK$${totalPrice.toLocaleString()}`)
+                        React.createElement('div', { className: "p-4 bg-rose-50 rounded-2xl mb-6" },
+                            React.createElement('div', { className: "flex justify-between font-bold text-rose-600 mb-1" },
+                                React.createElement('span', null, "合計金額"),
+                                React.createElement('span', null, `$${totalPrice}`)
                             ),
-                            React.createElement('p', { className: "text-[11px] font-bold text-rose-500" }, "⚠ 此價錢為暫定價格，於付款時收銀同事將提供相應的專屬優惠")
+                            React.createElement('p', { className: "text-[10px] text-rose-400" }, "此價錢為暫定價格，於付款時收銀同事將提供相應的專屬優惠")
                         ),
-                        React.createElement('button', { 
-                            onClick: handleConfirmOrder,
-                            className: "w-full bg-rose-500 text-white py-5 rounded-2xl font-bold text-lg shadow-xl active:scale-95 transition-all" 
-                        }, "確認並生成 QR")
+                        React.createElement('button', { onClick: handleConfirmOrder, className: "w-full bg-rose-500 text-white py-4 rounded-2xl font-bold" }, "確認訂單並顯示 QR"),
+                        React.createElement('button', { onClick: () => setShowPreview(false), className: "w-full py-3 text-gray-400 text-sm" }, "返回修改")
                     )
                 ),
 
-                // 歷史紀錄 Modal
-                showHistory && React.createElement('div', { className: "fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-6 animate-fade-in" },
-                    React.createElement('div', { className: "bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl flex flex-col max-h-[70vh]" },
-                        React.createElement('h3', { className: "text-xl font-black mb-6" }, "最近 10 次訂單"),
-                        React.createElement('div', { className: "flex-1 overflow-y-auto space-y-3 hide-scrollbar" },
-                            orderHistory.map(order => React.createElement('div', {
-                                key: order.id,
-                                onClick: () => { setCurrentOrder(order); setShowHistory(false); setShowQR(true); },
-                                className: "bg-slate-50 p-4 rounded-2xl border border-slate-100 cursor-pointer"
+                // 歷史紀錄彈窗
+                showHistory && React.createElement('div', { className: "fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-6" },
+                    React.createElement('div', { className: "bg-white w-full rounded-3xl p-6 max-h-[70vh] flex flex-col" },
+                        React.createElement('h3', { className: "font-black mb-4" }, "最近 10 次訂單"),
+                        React.createElement('div', { className: "flex-1 overflow-y-auto space-y-3" },
+                            orderHistory.length > 0 ? orderHistory.map(o => React.createElement('div', { 
+                                key: o.id, 
+                                onClick: () => { setCurrentOrder(o); setShowHistory(false); setShowQR(true); },
+                                className: "p-3 bg-gray-50 rounded-xl border border-gray-100" 
                             },
-                                React.createElement('div', { className: "flex justify-between text-[10px] text-slate-400 mb-1" },
-                                    React.createElement('span', null, `ID: ${order.id}`),
-                                    React.createElement('span', null, order.time)
-                                ),
-                                React.createElement('div', { className: "font-black text-slate-800" }, `HK$ ${order.total.toLocaleString()}`)
-                            ))
+                                React.createElement('div', { className: "flex justify-between text-[10px] text-gray-400" }, React.createElement('span', null, `ID: ${o.id}`), React.createElement('span', null, o.time)),
+                                React.createElement('div', { className: "font-bold" }, `HK$ ${o.total}`)
+                            )) : React.createElement('p', { className: "text-center text-gray-400 py-10" }, "暫無紀錄")
                         ),
-                        React.createElement('button', { onClick: () => setShowHistory(false), className: "mt-6 text-slate-400 text-sm font-bold" }, "返回")
+                        React.createElement('button', { onClick: () => setShowHistory(false), className: "mt-4 w-full py-2 text-gray-400" }, "關閉")
                     )
                 ),
 
-                // QR Modal
-                showQR && React.createElement('div', { className: "fixed inset-0 bg-slate-900/98 z-[60] flex items-center justify-center p-6 animate-fade-in" },
-                    React.createElement('div', { className: "bg-white w-full max-w-sm rounded-[3.5rem] p-10 text-center relative" },
-                        React.createElement('button', { onClick: () => setShowQR(false), className: "absolute top-8 right-8 text-slate-300" }, "✕"),
-                        React.createElement('h3', { className: "text-2xl font-black mb-6" }, "請出示 QR Code"),
-                        React.createElement('div', { className: "bg-slate-50 p-6 rounded-[3rem] inline-block mb-8" },
-                            React.createElement('canvas', { ref: qrCanvasRef })
-                        ),
-                        React.createElement('p', { className: "text-3xl font-black text-slate-900 tracking-widest mb-8" }, currentOrder?.id),
-                        React.createElement('button', { 
-                            onClick: () => { setShowQR(false); setCart({}); setSelectedBrand(null); },
-                            className: "w-full bg-rose-500 text-white py-4 rounded-2xl font-bold shadow-lg"
-                        }, "返回首頁")
+                // QR 碼彈窗
+                showQR && React.createElement('div', { className: "fixed inset-0 bg-slate-900/95 z-[60] flex items-center justify-center p-6" },
+                    React.createElement('div', { className: "bg-white w-full rounded-[3rem] p-10 text-center" },
+                        React.createElement('h3', { className: "font-black mb-6" }, "請出示給收銀同事"),
+                        React.createElement('canvas', { ref: qrCanvasRef, className: "mx-auto mb-6" }),
+                        React.createElement('div', { className: "text-2xl font-black mb-8" }, currentOrder?.id),
+                        React.createElement('button', { onClick: () => { setShowQR(false); setCart({}); }, className: "w-full bg-rose-500 text-white py-4 rounded-2xl font-bold" }, "返回首頁")
                     )
                 )
             );
