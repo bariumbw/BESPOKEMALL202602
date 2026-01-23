@@ -1,102 +1,342 @@
-// 1. 品牌圖片配置
-const BRAND_CONFIG = {
-    "agnès b.": "https://www.bespoke-wedding.com/sites/default/files/禮卡/Agnès%20b.png",
-    "聖安娜": "https://www.bespoke-wedding.com/sites/default/files/禮卡/SAINT%20%20HIGH.webp",
-    "GODIVA": "https://www.bespoke-wedding.com/sites/default/files/禮卡/GODIVA.png",
-    "東海堂": "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/tong.png",
-    "太興": "https://www.bespoke-wedding.com/sites/default/files/禮卡/太興.jpeg",
-    "鴻福堂": "https://www.bespoke-wedding.com/sites/default/files/禮卡/HungFukTong.webp",
-    "Lady M": "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/Sugarfina%20(2).png",
-    "L.M.D.C": "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/lmdc.png",
-    "華御結": "https://www.bespoke-wedding.com/sites/default/files/禮卡/HM%20Logo%20Wide-01.png",
-    "甜姨姨": "https://www.bespoke-wedding.com/sites/default/files/禮卡/auntie%20Sweet.webp",
-    "永樂": "https://www.bespoke-wedding.com/sites/default/files/禮卡/winglok_LOGO.webp",
-    "LE CREUSET": "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/Copy%20of%20禮卡11.png",
-    "奇華": "https://www.bespoke-wedding.com/sites/default/files/KWLOGO.png"
-};
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bespoke Mall | 智能訂購系統</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@300;400;500;700;900&display=swap');
+        body { font-family: 'Noto Sans HK', sans-serif; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: contain; }
+        .brand-card { transition: all 0.2s; border-radius: 2rem; cursor: pointer; border: 1px solid #f1f5f9; }
+        .product-card { transition: all 0.2s; border-radius: 1.5rem; }
+        .animate-up { animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .tab-active { color: #f43f5e; border-bottom: 3px solid #f43f5e; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    </style>
+    <script type="importmap">
+    { "imports": { "react": "https://esm.sh/react@^19.2.3", "react-dom/client": "https://esm.sh/react-dom@^19.2.3/client" } }
+    </script>
+</head>
+<body class="bg-gray-50 text-slate-900">
+    <div id="root"></div>
 
-// 2. 產品資訊 (根據最新資料更新)
-const PRODUCT_DEFS = [
-    // agnès b. (85折)
-    { brand: "agnès b.", name: "agnès b. $50禮券", sku: "20081", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/agnes50.png", tiers: [{q:10, d:0.85}] },
-    { brand: "agnès b.", name: "agnès b. $80禮券", sku: "200082", orig: 80, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/agnes80.png", tiers: [{q:10, d:0.85}] },
-    { brand: "agnès b.", name: "agnès b. $100禮券", sku: "20083", orig: 100, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/agnes100.png", tiers: [{q:10, d:0.85}] },
-    
-    // 聖安娜 (7折)
-    { brand: "聖安娜", name: "聖安娜 $25禮券", sku: "10127", orig: 25, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/ST25.png", tiers: [{q:10, d:0.7}] },
-    { brand: "聖安娜", name: "聖安娜 $50禮券", sku: "10209", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/ST50.png", tiers: [{q:10, d:0.7}] },
-    
-    // GODIVA (85折)
-    { brand: "GODIVA", name: "GODIVA $50 (粉紅封套)", sku: "10344", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/godiva-p.png", tiers: [{q:10, d:0.85}] },
-    { brand: "GODIVA", name: "GODIVA $50 (深啡封套)", sku: "10110", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/godiva-b.png", tiers: [{q:10, d:0.85}] },
-    { brand: "GODIVA", name: "GODIVA 軟雪糕及飲品禮券", sku: "10116", orig: 59, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/godiva-fnb.png", tiers: [{q:10, d:0.85}] },
-    { brand: "GODIVA", name: "GODIVA $100禮券", sku: "GODIVA-100", orig: 100, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/godiva-r.png", tiers: [{q:10, d:0.85}] },
+    <script type="module">
+        import React, { useState, useMemo, useRef, useEffect } from 'react';
+        import ReactDOM from 'react-dom/client';
 
-    // 東海堂 (79折)
-    { brand: "東海堂", name: "東海堂 $50 (花慶版)", sku: "10274", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/arm_f_50.png", tiers: [{q:10, d:0.79}] },
-    { brand: "東海堂", name: "東海堂 $50 (經典版)", sku: "10107", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/ARM_O_50.png", tiers: [{q:10, d:0.79}] },
-    { brand: "東海堂", name: "東海堂 $25", sku: "10275", orig: 25, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/arm_G_25.png", tiers: [{q:10, d:0.792}] },
+        const BRAND_CONFIG = {
+            "agnès b.": "https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/Agne%CC%80s%20b.png",
+            "聖安娜": "https://www.bespoke-wedding.com/sites/default/files/禮卡/SAINT%20%20HIGH.webp",
+            "GODIVA": "https://www.bespoke-wedding.com/sites/default/files/禮卡/GODIVA.png",
+            "東海堂": "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/tong.png",
+            "太興": "https://www.bespoke-wedding.com/sites/default/files/禮卡/太興.jpeg",
+            "鴻福堂": "https://www.bespoke-wedding.com/sites/default/files/禮卡/HungFukTong.webp",
+            "Lady M": "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/Sugarfina%20(2).png",
+            "L.M.D.C": "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/lmdc.png",
+            "華御結": "https://www.bespoke-wedding.com/sites/default/files/禮卡/HM%20Logo%20Wide-01.png",
+            "甜姨姨": "https://www.bespoke-wedding.com/sites/default/files/禮卡/auntie%20Sweet.webp",
+            "永樂": "https://www.bespoke-wedding.com/sites/default/files/禮卡/winglok_LOGO.webp",
+            "LE CREUSET": "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/Copy%20of%20禮卡11.png",
+            "奇華": "https://www.bespoke-wedding.com/sites/default/files/KWLOGO.png",
+            "糕點時光": "https://www.bespoke-wedding.com/sites/default/files/禮卡/糕點時光.webp",
+            "Bonne Maman": "https://www.bespoke-wedding.com/sites/default/files/禮卡/Bonne%20Maman_%20.png"
+        };
 
-    // 太興 (88折)
-    { brand: "太興", name: "太興 $50金豬禮券", sku: "10419", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/taihing1.png", tiers: [{q:10, d:0.88}] },
+        const PRODUCT_DEFS = [
+            { category: "Gift Card", brand: "agnès b.", name: "agnès b. $50禮券", sku: "20081", expiry: "2026-12-31", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/agnes50.png", tiers: [{q:10, d:0.85}] },
+            { category: "Gift Card", brand: "agnès b.", name: "agnès b. $80禮券", sku: "200082", expiry: "2026-12-31", orig: 80, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/agnes80.png", tiers: [{q:10, d:0.85}] },
+            { category: "Gift Card", brand: "agnès b.", name: "agnès b. $100禮券", sku: "20083", expiry: "2026-12-31", orig: 100, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/agnes100.png", tiers: [{q:10, d:0.85}] },
+            { category: "Gift Card", brand: "聖安娜", name: "聖安娜 $25禮券", sku: "10127", expiry: "2026-12-31", orig: 25, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/ST25.png", tiers: [{q:10, d:0.7}] },
+            { category: "Gift Card", brand: "聖安娜", name: "聖安娜 $50禮券", sku: "10209", expiry: "2026-12-31", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/ST50.png", tiers: [{q:10, d:0.7}] },
+            { category: "Gift Card", brand: "GODIVA", name: "GODIVA $50 (粉紅封套)", sku: "10344", expiry: "2026-12-31", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/godiva-p.png", tiers: [{q:10, d:0.85}] },
+            { category: "Gift Card", brand: "GODIVA", name: "GODIVA $50 (深啡封套)", sku: "10110", expiry: "2026-12-31", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/godiva-b.png", tiers: [{q:10, d:0.85}] },
+            { category: "Gift Card", brand: "GODIVA", name: "GODIVA 軟雪糕及飲品禮券", sku: "10116", expiry: "2026-08-31", orig: 59, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/godiva-fnb.png", tiers: [{q:10, d:0.8508}] },
+            { category: "Gift Card", brand: "GODIVA", name: "GODIVA $100禮券", sku: "10111", expiry: "2026-12-31", orig: 100, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/godiva-r.png", tiers: [{q:10, d:0.85}] },
+            { category: "Gift Card", brand: "東海堂", name: "東海堂 $50 (花慶版)", sku: "10274", expiry: "2026-12-31", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/arm_f_50.png", tiers: [{q:10, d:0.79}] },
+            { category: "Gift Card", brand: "東海堂", name: "東海堂 $50 (經典版)", sku: "10107", expiry: "2026-12-31", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/ARM_O_50.png", tiers: [{q:10, d:0.79}] },
+            { category: "Gift Card", brand: "東海堂", name: "東海堂 $25", sku: "10275", expiry: "2026-12-31", orig: 25, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/arm_G_25.png", tiers: [{q:10, d:0.792}] },
+            { category: "Gift Card", brand: "太興", name: "太興 $50金豬禮券", sku: "10419", expiry: "2026-12-31", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/taihing1.png", tiers: [{q:10, d:0.88}] },
+            { category: "Gift Card", brand: "鴻福堂", name: "鴻福堂 $50 (囍)", sku: "10278", expiry: "2026-12-31", orig: 60, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/HFT_HEI.png", tiers: [{q:10, d:0.6}] },
+            { category: "Gift Card", brand: "鴻福堂", name: "鴻福堂 $50 (粉紅)", sku: "10279", expiry: "2026-12-31", orig: 60, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/HKT_P.png", tiers: [{q:10, d:0.6}] },
+            { category: "Gift Card", brand: "鴻福堂", name: "自家湯套票(10張)", sku: "HFT-001", expiry: "2026-12-31", orig: 600, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/自家湯.png", tiers: [{q:1, d:0.6583}] },
+            { category: "Gift Card", brand: "鴻福堂", name: "自家涼茶套票(10張)", sku: "HFT-002", expiry: "2026-12-31", orig: 600, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/涼茶.png", tiers: [{q:1, d:0.6583}] },
+            { category: "Gift Card", brand: "鴻福堂", name: "藥製龜苓膏套票(10張)", sku: "HFT-003", expiry: "2026-12-31", orig: 600, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/0膏.png", tiers: [{q:1, d:0.6583}] },
+            { category: "Gift Card", brand: "鴻福堂", name: "自家豬腳薑醋禮券", sku: "HFT-007", expiry: "2026-12-31", orig: 60, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/HFT_PIG.png", tiers: [{q:10, d:0.766}] },
+            { category: "Gift Card", brand: "Lady M", name: "Lady M US$80", sku: "10437-10443", expiry: "2026-12-31", orig: 80, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/Ladym80_.png", tiers: [{q:1, d:1.0}, {q:50, d:0.8}] },
+            { category: "Gift Card", brand: "Lady M", name: "Lady M US$150", sku: "10430-10436", expiry: "2026-12-31", orig: 150, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡.png", tiers: [{q:1, d:1.0}, {q:50, d:0.8}] },
+            { category: "Gift Card", brand: "L.M.D.C", name: "L.M.D.C $50禮券", sku: "10376/10377", expiry: "2026-12-31", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/LMDC50.png", tiers: [{q:10, d:0.88}, {q:50, d:0.84}] },
+            { category: "Gift Card", brand: "L.M.D.C", name: "L.M.D.C $100禮券", sku: "10380/10378", expiry: "2026-12-31", orig: 100, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/lmdc100.png", tiers: [{q:10, d:0.88}, {q:50, d:0.85}] },
+            { category: "Gift Card", brand: "L.M.D.C", name: "L.M.D.C $500禮券", sku: "10381/10379", expiry: "2026-12-31", orig: 500, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/LMDC500.png", tiers: [{q:1, d:0.88}, {q:10, d:0.85}] },
+            { category: "Gift Card", brand: "華御結", name: "華御結 $25禮券", sku: "10446/10447", expiry: "2026-12-31", orig: 25, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/hana25.png", tiers: [{q:10, d:0.88}, {q:50, d:0.85}] },
+            { category: "Gift Card", brand: "華御結", name: "華御結 $50禮券", sku: "10444/10445", expiry: "2026-12-31", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/hana50.png", tiers: [{q:10, d:0.88}, {q:50, d:0.85}] },
+            { category: "Gift Card", brand: "甜姨姨", name: "甜姨姨 (紅色婚慶) $50", sku: "10270/10271/10272", expiry: "2026-12-31", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/AS_R.png", tiers: [{q:10, d:0.85}, {q:50, d:0.75}, {q:100, d:0.7}] },
+            { category: "Gift Card", brand: "甜姨姨", name: "甜姨姨 (淡黃原色) $50", sku: "10266/10268/10269", expiry: "2026-12-31", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/AS_Y.png", tiers: [{q:10, d:0.85}, {q:50, d:0.75}, {q:100, d:0.7}] },
+            { category: "Gift Card", brand: "永樂", name: "永樂 嫁囍禮券", sku: "10420", expiry: "2026-12-31", orig: 57.5, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/wedding_gift_voucher_1_1.webp", tiers: [{q:10, d:0.8}] },
+            { category: "Gift Card", brand: "LE CREUSET", name: "LE CREUSET $100禮券", sku: "10290/10291", expiry: "不設期限", orig: 100, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/le%20100.webp", tiers: [{q:1, d:0.6}] },
+            { category: "Gift Card", brand: "LE CREUSET", name: "LE CREUSET $500禮券", sku: "10293", expiry: "不設期限", orig: 500, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/le%20500.webp", tiers: [{q:1, d:0.6}] },
+            { category: "Gift Card", brand: "LE CREUSET", name: "LE CREUSET $1000禮券", sku: "10294", expiry: "不設期限", orig: 1000, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/le1000.webp", tiers: [{q:1, d:0.6}] },
+            { category: "Gift Card", brand: "奇華", name: "奇華 $50禮券", sku: "10461", expiry: "2026-12-31", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/50.png", tiers: [{q:10, d:0.8}] },
+            { category: "Gift Card", brand: "奇華", name: "奇華 金盈喜禮券", sku: "10463", expiry: "2026-12-31", orig: 83.3, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/金盈.png", tiers: [{q:10, d:0.84}] },
+            { category: "Gift Card", brand: "奇華", name: "奇華 金雅喜禮券", sku: "10465/10468", expiry: "2026-12-31", orig: 106.6, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/金雅.png", tiers: [{q:10, d:0.84}] },
+            { category: "Gift Card", brand: "奇華", name: "奇華 金緣喜禮券", sku: "10467", expiry: "2026-12-31", orig: 167.6, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/金緣.png", tiers: [{q:10, d:0.84}] },
+            { category: "Gift Card", brand: "奇華", name: "奇華 金御喜禮券", sku: "10469", expiry: "2026-12-31", orig: 434.2, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/金御.png", tiers: [{q:1, d:0.84}] },
+            { category: "Favor", brand: "agnès b.", name: "幸運曲奇(2個)", sku: "10370", expiry: "2026-12-31", orig: 46, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/婚禮回禮圓筒禮盒幸運曲奇(2個).png", tiers: [{q:10, d:0.85}] },
+            { category: "Favor", brand: "agnès b.", name: "榛子朱古力脆珠(40克)", sku: "10368", expiry: "2026-12-31", orig: 46, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/婚禮回禮圓筒禮盒：榛子朱古力脆珠%20(40克).png", tiers: [{q:10, d:0.85}] },
+            { category: "Favor", brand: "agnès b.", name: "片裝朱古力4片", sku: "10201", expiry: "2026-12-31", orig: 46, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/婚禮回禮圓筒禮盒：片裝朱古力4片.png", tiers: [{q:10, d:0.85}] },
+            { category: "Favor", brand: "GODIVA", name: "雅致巧克力鐵盒2顆", sku: "10135", expiry: "2026-12-31", orig: 59, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/go雅致巧克力鐵盒2顆裝.png", tiers: [{q:10, d:0.85}] },
+            { category: "Favor", brand: "GODIVA", name: "絲帶2顆裝(粉藍)", sku: "10137", expiry: "2026-12-31", orig: 39, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/go雅致巧克力禮盒配絲帶2顆裝%20(粉藍).png", tiers: [{q:10, d:0.85}] },
+            { category: "Favor", brand: "GODIVA", name: "絲帶2顆裝(粉紅)", sku: "10136", expiry: "2026-12-31", orig: 39, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/go雅致巧克力禮盒配絲帶2顆裝%20(粉藍).png", tiers: [{q:10, d:0.85}] },
+            { category: "Favor", brand: "GODIVA", name: "巧克力紙盒2顆(金色)", sku: "10131", expiry: "2026-12-31", orig: 39, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/Go巧克力紙盒2顆裝%20(金色).png", tiers: [{q:10, d:0.85}] },
+            { category: "Favor", brand: "GODIVA", name: "巧克力紙盒2顆(紅色)", sku: "10132", expiry: "2026-12-31", orig: 39, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/Go巧克力紙盒2顆裝%20(金色).png", tiers: [{q:10, d:0.85}] },
+            { category: "Favor", brand: "Lady M", name: "女王棉花餅", sku: "10388/89/90", expiry: "2026-12-31", orig: 25, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/ladymb1.jpg", tiers: [{q:10, d:1.0}, {q:50, d:0.92}] },
+            { category: "Favor", brand: "L.M.D.C", name: "純黑松露禮盒(2粒)", sku: "10382", expiry: "2026-12-31", orig: 72, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/lmdc純黑松露朱古力禮盒%20(2粒)%20.png", tiers: [{q:10, d:0.85}] },
+            { category: "Favor", brand: "L.M.D.C", name: "心意禮盒(2粒)", sku: "10383", expiry: "2026-12-31", orig: 72, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/LMDC心意禮盒%20(2粒).png", tiers: [{q:10, d:0.85}] },
+            { category: "Favor", brand: "L.M.D.C", name: "果仁朱古力禮盒(2粒)", sku: "10385", expiry: "2026-12-31", orig: 72, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/LMDC果仁.png", tiers: [{q:10, d:0.85}] },
+            { category: "Favor", brand: "L.M.D.C", name: "朱古力橙條禮盒(約15條)", sku: "10384", expiry: "2026-12-31", orig: 220, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/lmdc朱古力橙條禮盒%2050克%20(約15條).png", tiers: [{q:10, d:0.85}] },
+            { category: "Favor", brand: "糕點時光", name: "囍糖雜錦款式", sku: "10402", expiry: "2026-12-31", orig: 20, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/timeto.png", tiers: [{q:10, d:0.88}] },
+            { category: "Favor", brand: "永樂", name: "有麵子回禮小禮物", sku: "10422", expiry: "2026-12-31", orig: 38, min: 20, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/永樂%20有麵子%20回禮小禮物%20.jpg", tiers: [{q:20, d:0.79}] },
+            { category: "Favor", brand: "Bonne Maman", name: "蜜糖30g x 60瓶", sku: "10424", expiry: "2027-01-01", orig: 420, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/蜜糖%2030g%20x%2060瓶.png", tiers: [{q:1, d:0.8}] }
+        ];
 
-    // 鴻福堂 (6折/階梯)
-    { brand: "鴻福堂", name: "鴻福堂 $50 (囍)", sku: "10278", orig: 60, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/HFT_HEI.png", tiers: [{q:10, d:0.6}] },
-    { brand: "鴻福堂", name: "自家湯套票(1套10張)", sku: "HFT-汤", orig: 600, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/自家湯.png", tiers: [{q:1, d:0.658}] },
-    { brand: "鴻福堂", name: "自家豬腳薑醋禮券", sku: "HFT-姜", orig: 68, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/HFT_PIG.png", tiers: [{q:1, d:0.676}] },
+        const App = () => {
+            const [activeTab, setActiveTab] = useState('Gift Card');
+            const [selectedBrand, setSelectedBrand] = useState(null);
+            const [searchTerm, setSearchTerm] = useState('');
+            const [cart, setCart] = useState({});
+            const [showPreview, setShowPreview] = useState(false);
+            const [showQR, setShowQR] = useState(false);
+            const [showHistory, setShowHistory] = useState(false);
+            const [currentOrder, setCurrentOrder] = useState(null);
+            const [orderHistory, setOrderHistory] = useState([]);
 
-    // Lady M (層遞式)
-    { brand: "Lady M", name: "Lady M $80", sku: "10437", orig: 80, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/Ladym80_.png", tiers: [{q:50, d:0.8}, {q:10, d:1}] },
-    { brand: "Lady M", name: "Lady M $150", sku: "10430", orig: 150, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡.png", tiers: [{q:50, d:0.8}, {q:10, d:1}] },
+            const qrCanvasRef = useRef(null);
 
-    // L.M.D.C (層遞式)
-    { brand: "L.M.D.C", name: "L.M.D.C $50禮券", sku: "10376", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/LMDC50.png", tiers: [{q:50, d:0.84}, {q:10, d:0.88}] },
-    { brand: "L.M.D.C", name: "L.M.D.C $100禮券", sku: "10380", orig: 100, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/lmdc100.png", tiers: [{q:50, d:0.85}, {q:10, d:0.88}] },
+            useEffect(() => {
+                const saved = localStorage.getItem('bw_order_history_v2');
+                if (saved) setOrderHistory(JSON.parse(saved));
+            }, []);
 
-    // 華御結 (層遞式)
-    { brand: "華御結", name: "華御結 $25禮券", sku: "10446", orig: 25, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/hana25.png", tiers: [{q:50, d:0.85}, {q:10, d:0.88}] },
-    { brand: "華御結", name: "華御結 $50禮券", sku: "10444", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/hana50.png", tiers: [{q:50, d:0.85}, {q:10, d:0.88}] },
+            const getPrice = (sku, qty) => {
+                const p = PRODUCT_DEFS.find(x => x.sku === sku);
+                if (!p) return { price: 0, discount: 1 };
+                const qtyToCheck = qty || p.min;
+                const activeTier = [...p.tiers].sort((a,b) => b.q - a.q).find(t => qtyToCheck >= t.q);
+                const discount = activeTier ? activeTier.d : 1;
+                return { price: Math.round(p.orig * discount * 100) / 100, discount };
+            };
 
-    // LE CREUSET (6折)
-    { brand: "LE CREUSET", name: "LE CREUSET $100禮券", sku: "10290", orig: 100, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/le%20100.webp", tiers: [{q:1, d:0.6}] },
-    { brand: "LE CREUSET", name: "LE CREUSET $1000禮券", sku: "10294", orig: 1000, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/le1000.webp", tiers: [{q:1, d:0.6}] },
+            const cartItems = useMemo(() => 
+                Object.entries(cart).map(([sku, qty]) => {
+                    const def = PRODUCT_DEFS.find(p => p.sku === sku);
+                    const { price, discount } = getPrice(sku, qty);
+                    return { ...def, qty, currentPrice: price, discount };
+                }), [cart]
+            );
 
-    // 奇華 (84折)
-    { brand: "奇華", name: "奇華 $50禮券", sku: "10461", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/50.png", tiers: [{q:10, d:0.8}] },
-    { brand: "奇華", name: "奇華 金盈喜禮券", sku: "10463", orig: 83.3, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/金盈.png", tiers: [{q:10, d:0.84}] }
-];
+            const totalPrice = cartItems.reduce((acc, item) => acc + (item.currentPrice * item.qty), 0);
+            const totalCount = Object.values(cart).reduce((a, b) => a + b, 0);
 
-// 核心組件片段
-const PreviewModal = () => {
-    return React.createElement('div', { className: "fixed inset-0 bg-black/60 z-50 flex items-end" },
-        React.createElement('div', { className: "bg-white w-full max-w-md mx-auto p-8 rounded-t-[3rem] animate-up shadow-2xl" },
-            React.createElement('h3', { className: "text-xl font-black mb-6" }, "核對訂單"),
-            
-            // 產品列表
-            React.createElement('div', { className: "max-h-60 overflow-y-auto mb-6 space-y-4 hide-scrollbar" },
-                cartItems.map(item => React.createElement('div', { key: item.sku, className: "flex justify-between text-sm" },
-                    React.createElement('div', null, 
-                        React.createElement('div', { className: "font-bold" }, item.name),
-                        React.createElement('div', { className: "text-xs text-gray-400" }, `$${item.currentPrice} x ${item.qty}`)
+            const updateQty = (sku, delta) => {
+                const def = PRODUCT_DEFS.find(p => p.sku === sku);
+                setCart(prev => {
+                    const cur = prev[sku] || 0;
+                    let next = cur + delta;
+                    if (cur === 0 && delta > 0) next = def.min;
+                    else if (cur === def.min && delta < 0) next = 0;
+                    const res = { ...prev };
+                    if (next <= 0) delete res[sku]; else res[sku] = next;
+                    return res;
+                });
+            };
+
+            const handleManualQty = (sku, val) => {
+                const num = parseInt(val) || 0;
+                setCart(prev => {
+                    const res = { ...prev };
+                    if (num <= 0) delete res[sku]; else res[sku] = num;
+                    return res;
+                });
+            };
+
+            const renderTierText = (p) => {
+                return p.tiers.map((t, idx) => {
+                    const nextTier = p.tiers[idx + 1];
+                    const unitPrice = Math.round(p.orig * t.d * 10) / 10;
+                    const text = nextTier ? `${t.q}張-${nextTier.q - 1}張 每張$${unitPrice}` : `${t.q}張以上 每張$${unitPrice}`;
+                    return React.createElement('div', { key: idx, className: "leading-tight" }, text);
+                });
+            };
+
+            const handleConfirm = () => {
+                const id = Math.floor(100000 + Math.random() * 900000).toString();
+                const newOrder = { 
+                    id, total: totalPrice, 
+                    date: new Date().toLocaleString('zh-HK', { hour12: false }),
+                    items: cartItems.map(i => ({ name: i.name, qty: i.qty }))
+                };
+                const updatedHistory = [newOrder, ...orderHistory].slice(0, 10);
+                setOrderHistory(updatedHistory);
+                localStorage.setItem('bw_order_history_v2', JSON.stringify(updatedHistory));
+                setCurrentOrder(newOrder);
+                setShowPreview(false);
+                setShowQR(true);
+                setCart({});
+            };
+
+            useEffect(() => {
+                if (showQR && currentOrder && qrCanvasRef.current) {
+                    new QRious({ element: qrCanvasRef.current, value: `BW-${currentOrder.id}`, size: 240 });
+                }
+            }, [showQR, currentOrder]);
+
+            return React.createElement('div', { className: "min-h-screen max-w-md mx-auto relative pb-20 bg-gray-50" },
+                React.createElement('header', { className: "bg-white p-5 sticky top-0 z-30 shadow-sm rounded-b-[2rem]" },
+                    React.createElement('div', { className: "flex justify-between items-center mb-4" },
+                        React.createElement('div', null,
+                            React.createElement('h1', { onClick: () => { setSelectedBrand(null); setSearchTerm(''); }, className: "text-2xl font-black text-rose-500 italic cursor-pointer leading-none" }, "Bespoke Mall"),
+                            React.createElement('p', { className: "text-[10px] text-gray-400 font-bold mt-1" }, "（只限展場下單）")
+                        ),
+                        React.createElement('button', { onClick: () => setShowHistory(true), className: "bg-slate-100 px-4 py-2 rounded-full text-[10px] font-bold text-slate-600 shadow-inner" }, "📋 我的訂單")
                     ),
-                    React.createElement('span', { className: "font-black" }, `$${(item.currentPrice * item.qty).toLocaleString()}`)
-                ))
-            ),
-
-            // 合計金額部分 (補回)
-            React.createElement('div', { className: "border-t border-dashed pt-4 mb-4" },
-                React.createElement('div', { className: "flex justify-between items-center mb-2" },
-                    React.createElement('span', { className: "text-gray-500 font-bold" }, "合計估算金額:"),
-                    React.createElement('span', { className: "text-2xl font-black text-rose-500" }, `HK$ ${totalPrice.toLocaleString()}`)
+                    React.createElement('input', {
+                        type: "text", placeholder: "搜尋產品、品牌或 SKU...",
+                        className: "w-full bg-gray-100 px-4 py-3 rounded-2xl text-sm outline-none border-2 border-transparent focus:border-rose-200",
+                        value: searchTerm, onChange: e => setSearchTerm(e.target.value)
+                    }),
+                    !searchTerm && React.createElement('div', { className: "flex mt-4 border-b" },
+                        React.createElement('button', { onClick: () => { setActiveTab('Gift Card'); setSelectedBrand(null); }, className: `flex-1 py-2 text-sm font-bold ${activeTab === 'Gift Card' ? 'tab-active' : 'text-gray-400'}` }, "💳 禮券"),
+                        React.createElement('button', { onClick: () => { setActiveTab('Favor'); setSelectedBrand(null); }, className: `flex-1 py-2 text-sm font-bold ${activeTab === 'Favor' ? 'tab-active' : 'text-gray-400'}` }, "🎁 回禮小禮物")
+                    )
                 ),
-                // 提示字句 (補回)
-                React.createElement('p', { className: "text-[11px] text-gray-400 bg-gray-50 p-3 rounded-xl leading-relaxed" }, 
-                    "⚠️ 此價錢為暫定價格，於付款時收銀同事將提供相應的專屬優惠。最終價格以門市結帳為準。"
+                React.createElement('main', { className: "p-4" },
+                    selectedBrand || searchTerm ? 
+                        React.createElement('div', { className: "animate-up" },
+                            !searchTerm && React.createElement('button', { onClick: () => setSelectedBrand(null), className: "mb-4 text-rose-500 font-bold text-sm" }, "← 返回"),
+                            React.createElement('div', { className: "space-y-4" },
+                                PRODUCT_DEFS.filter(p => searchTerm ? (p.name.includes(searchTerm) || p.sku.includes(searchTerm) || p.brand.toLowerCase().includes(searchTerm.toLowerCase())) : (p.brand.toLowerCase() === selectedBrand.toLowerCase() && p.category === activeTab)).map(p => {
+                                    const { price } = getPrice(p.sku, cart[p.sku]);
+                                    return React.createElement('div', { key: p.sku, className: "product-card bg-white p-4 border border-slate-100 flex gap-3 shadow-md items-center" },
+                                        React.createElement('img', { src: p.img, className: "w-16 h-16 rounded-xl object-cover flex-shrink-0" }),
+                                        React.createElement('div', { className: "flex-1 min-w-0" },
+                                            React.createElement('div', { className: "text-[13px] font-black mb-1 line-clamp-1" }, p.name),
+                                            React.createElement('div', { className: "flex items-baseline gap-2 mb-0.5" },
+                                                React.createElement('div', { className: "text-rose-500 font-black text-base" }, `$${price}`),
+                                                React.createElement('div', { className: "text-gray-300 line-through text-[10px]" }, `$${p.orig}`)
+                                            ),
+                                            React.createElement('div', { className: "text-[9px] space-y-1 mt-1" },
+                                                React.createElement('div', { className: "text-rose-400 font-bold border-l-2 border-rose-200 pl-2" }, renderTierText(p)),
+                                                React.createElement('div', { className: "text-gray-400 pt-1" }, `SKU: ${p.sku} | 有效日期: ${p.expiry}`)
+                                            )
+                                        ),
+                                        React.createElement('div', { className: "flex items-center gap-1 bg-gray-50 rounded-full px-1 py-0.5 flex-shrink-0" },
+                                            React.createElement('button', { onClick: () => updateQty(p.sku, -1), className: "w-6 h-6 flex items-center justify-center text-gray-300 font-black text-sm" }, "−"),
+                                            React.createElement('input', { 
+                                                type: "number", value: cart[p.sku] || 0,
+                                                onChange: (e) => handleManualQty(p.sku, e.target.value),
+                                                className: "w-10 bg-transparent text-center font-black text-xs outline-none"
+                                            }),
+                                            React.createElement('button', { onClick: () => updateQty(p.sku, 1), className: "w-6 h-6 flex items-center justify-center text-rose-500 font-black text-sm" }, "+")
+                                        )
+                                    );
+                                })
+                            )
+                        ) : 
+                        React.createElement('div', { className: "grid grid-cols-2 gap-4 animate-up" },
+                            Object.entries(BRAND_CONFIG).filter(([name]) => PRODUCT_DEFS.some(p => p.brand.toLowerCase() === name.toLowerCase() && p.category === activeTab)).map(([name, logo]) => React.createElement('div', {
+                                key: name, onClick: () => setSelectedBrand(name),
+                                className: "brand-card bg-white p-6 shadow-sm flex flex-col items-center justify-center h-32"
+                            },
+                                React.createElement('img', { src: logo, className: "w-full h-12 object-contain mb-2" }),
+                                React.createElement('span', { className: "font-bold text-[10px] text-gray-400 text-center uppercase" }, name)
+                            ))
+                        )
+                ),
+                React.createElement('footer', { className: "fixed bottom-0 left-0 right-0 px-6 pb-4 pt-2 z-40 max-w-md mx-auto" },
+                    React.createElement('div', { className: "bg-slate-900 px-5 py-3 flex justify-between items-center shadow-2xl rounded-[2rem] text-white" },
+                        React.createElement('div', null,
+                            React.createElement('div', { className: "text-[9px] text-slate-400" }, "合計金額"),
+                            React.createElement('div', { className: "text-lg font-black text-rose-400 leading-none" }, `$${totalPrice.toLocaleString()}`)
+                        ),
+                        React.createElement('button', { 
+                            disabled: totalCount === 0, onClick: () => setShowPreview(true),
+                            className: `px-5 py-2 rounded-xl text-xs font-black ${totalCount > 0 ? 'bg-rose-500 shadow-md' : 'bg-slate-800 text-slate-500'}`
+                        }, `預覽購物車 (${totalCount})`)
+                    )
+                ),
+                showPreview && React.createElement('div', { className: "fixed inset-0 bg-black/80 z-50 flex items-end justify-center" },
+                    React.createElement('div', { className: "bg-white w-full max-w-md p-8 rounded-t-[3rem] animate-up shadow-2xl" },
+                        React.createElement('h3', { className: "text-2xl font-black mb-6" }, "核對訂單"),
+                        React.createElement('div', { className: "max-h-[40vh] overflow-y-auto mb-6 space-y-4 hide-scrollbar" },
+                            cartItems.map(item => React.createElement('div', { key: item.sku, className: "flex justify-between items-center" },
+                                React.createElement('div', { className: "flex-1 mr-4" }, 
+                                    React.createElement('div', { className: "font-bold text-sm" }, item.name),
+                                    React.createElement('div', { className: "text-xs text-rose-500 font-bold" }, `$${item.currentPrice} / 件`)
+                                ),
+                                React.createElement('div', { className: "flex items-center gap-2 bg-gray-100 rounded-full px-2 py-1" },
+                                    React.createElement('button', { onClick: () => updateQty(item.sku, -1), className: "w-5 h-5 text-gray-400 font-bold text-sm" }, "−"),
+                                    React.createElement('input', { type: "number", value: item.qty, onChange: (e) => handleManualQty(item.sku, e.target.value), className: "w-10 bg-transparent text-center font-black text-xs outline-none" }),
+                                    React.createElement('button', { onClick: () => updateQty(item.sku, 1), className: "w-5 h-5 text-rose-500 font-bold text-sm" }, "+")
+                                )
+                            ))
+                        ),
+                        React.createElement('div', { className: "bg-slate-50 p-6 rounded-3xl mb-6" },
+                            React.createElement('div', { className: "flex justify-between items-center mb-2" },
+                                React.createElement('span', { className: "text-gray-400 font-bold text-sm" }, `已選產品 (${totalCount} 件)`),
+                                React.createElement('span', { className: "text-2xl font-black text-rose-500" }, `$${totalPrice.toLocaleString()}`)
+                            ),
+                            React.createElement('p', { className: "text-[11px] text-gray-400 leading-relaxed font-medium" }, "此價錢為暫定價格，於付款時收銀同事將提供相應的專屬優惠。")
+                        ),
+                        React.createElement('button', { onClick: handleConfirm, className: "w-full bg-rose-500 text-white py-4 rounded-2xl font-black text-lg shadow-xl" }, "確認訂單"),
+                        React.createElement('button', { onClick: () => setShowPreview(false), className: "w-full mt-4 text-gray-400 font-bold text-sm" }, "返回修改")
+                    )
+                ),
+                showQR && React.createElement('div', { className: "fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-6 backdrop-blur-sm" },
+                    React.createElement('div', { className: "bg-white w-full max-w-xs rounded-[3rem] p-8 flex flex-col items-center animate-up shadow-2xl relative" },
+                        React.createElement('button', { onClick: () => setShowQR(false), className: "absolute top-6 right-6 text-gray-300 text-xl" }, "✕"),
+                        React.createElement('h2', { className: "text-lg font-black mb-6 text-slate-800" }, "向職員出示QR Code"),
+                        React.createElement('canvas', { ref: qrCanvasRef }),
+                        React.createElement('div', { className: "mt-6 text-center w-full" },
+                            React.createElement('div', { className: "text-[10px] text-gray-400 uppercase font-bold" }, "Reference Number"),
+                            React.createElement('div', { className: "text-2xl font-black text-rose-500" }, `BW-${currentOrder?.id}`),
+                            React.createElement('div', { className: "mt-3 pt-3 border-t border-dashed border-gray-200 text-left max-h-32 overflow-y-auto hide-scrollbar" },
+                                currentOrder?.items.map((item, idx) => React.createElement('div', { key: idx, className: "text-[10px] text-gray-500 flex justify-between py-1" },
+                                    React.createElement('span', { className: "truncate mr-2" }, item.name),
+                                    React.createElement('span', { className: "font-bold flex-shrink-0" }, `x${item.qty}`)
+                                ))
+                            )
+                        ),
+                        React.createElement('button', { onClick: () => setShowQR(false), className: "mt-6 w-full bg-slate-900 text-white py-3 rounded-2xl font-black text-sm" }, "關閉")
+                    )
+                ),
+                showHistory && React.createElement('div', { className: "fixed inset-0 bg-black/60 z-[70] flex items-center justify-center p-6 backdrop-blur-sm" },
+                    React.createElement('div', { className: "bg-white w-full max-w-sm rounded-[3rem] p-8 flex flex-col animate-up shadow-2xl relative max-h-[80vh]" },
+                        React.createElement('button', { onClick: () => setShowHistory(false), className: "absolute top-6 right-6 text-gray-300 text-xl" }, "✕"),
+                        React.createElement('h2', { className: "text-xl font-black mb-6 text-slate-800" }, "歷史紀錄"),
+                        React.createElement('div', { className: "overflow-y-auto space-y-4 hide-scrollbar" },
+                            orderHistory.length === 0 ? 
+                                React.createElement('div', { className: "text-center text-gray-400 py-10 italic" }, "暫無歷史紀錄") :
+                                orderHistory.map(ord => React.createElement('div', { key: ord.id, onClick: () => { setCurrentOrder(ord); setShowQR(true); }, className: "bg-gray-50 p-4 rounded-3xl border border-gray-100 flex items-center justify-between" },
+                                    React.createElement('div', { className: "flex-1" },
+                                        React.createElement('div', { className: "flex justify-between" },
+                                            React.createElement('span', { className: "font-black text-rose-500 text-sm" }, `BW-${ord.id}`),
+                                            React.createElement('span', { className: "text-[9px] text-gray-400" }, ord.date)
+                                        ),
+                                        React.createElement('div', { className: "font-bold text-sm mt-1" }, `$${ord.total.toLocaleString()}`)
+                                    )
+                                ))
+                        )
+                    )
                 )
-            ),
+            );
+        };
 
-            React.createElement('button', { onClick: handleConfirm, className: "w-full bg-rose-500 text-white py-4 rounded-2xl font-black mb-2" }, "確認訂單並生成 QR"),
-            React.createElement('button', { onClick: () => setShowPreview(false), className: "w-full py-2 text-gray-400 text-sm" }, "返回修改數量")
-        )
-    );
-};
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(React.createElement(App));
+    </script>
+</body>
+</html>
