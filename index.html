@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Bespoke Mall | 智能訂購系統</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@300;400;500;700;900&display=swap');
@@ -17,6 +17,7 @@
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .tab-active { color: #f43f5e; border-bottom: 3px solid #f43f5e; }
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .barcode-container svg { width: 100% !important; height: auto !important; }
     </style>
     <script type="importmap">
     { "imports": { "react": "https://esm.sh/react@^19.2.3", "react-dom/client": "https://esm.sh/react-dom@^19.2.3/client" } }
@@ -28,6 +29,9 @@
     <script type="module">
         import React, { useState, useMemo, useRef, useEffect } from 'react';
         import ReactDOM from 'react-dom/client';
+
+        // 請在此處貼上你的 Google Apps Script URL
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyf-dF_ut8b0u_aRRr2g3obhtNZQMmHHR4YjfEf70X08ScKONvnU5nmPmSxt1aMUI9A/exec";
 
         const BRAND_CONFIG = {
             "agnès b.": "https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/Agne%CC%80s%20b.png",
@@ -109,15 +113,16 @@
             const [searchTerm, setSearchTerm] = useState('');
             const [cart, setCart] = useState({});
             const [showPreview, setShowPreview] = useState(false);
-            const [showQR, setShowQR] = useState(false);
+            const [showBarcode, setShowBarcode] = useState(false);
             const [showHistory, setShowHistory] = useState(false);
             const [currentOrder, setCurrentOrder] = useState(null);
             const [orderHistory, setOrderHistory] = useState([]);
+            const [isSyncing, setIsSyncing] = useState(false);
 
-            const qrCanvasRef = useRef(null);
+            const barcodeRef = useRef(null);
 
             useEffect(() => {
-                const saved = localStorage.getItem('bw_cust_history_v3');
+                const saved = localStorage.getItem('bw_cust_history_v4');
                 if (saved) setOrderHistory(JSON.parse(saved));
             }, []);
 
@@ -173,6 +178,7 @@
             };
 
             const handleConfirm = async () => {
+                setIsSyncing(true);
                 const id = Math.floor(100000 + Math.random() * 900000).toString();
                 const now = new Date().toLocaleString('zh-HK', { hour12: false });
                 const newOrder = { 
@@ -181,28 +187,39 @@
                     items: cartItems.map(i => ({ name: i.name, qty: i.qty, sku: i.sku, price: i.currentPrice }))
                 };
 
-                // 用戶本地歷史僅保留 5 筆
+                // 傳送到 Google Sheets
+                try {
+                    await fetch(GOOGLE_SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(newOrder)
+                    });
+                } catch (e) { console.error("Sync failed", e); }
+
                 const updatedHistory = [newOrder, ...orderHistory].slice(0, 5);
                 setOrderHistory(updatedHistory);
-                localStorage.setItem('bw_cust_history_v3', JSON.stringify(updatedHistory));
-
-                // 【同步至後端所有訂單庫】
-                // 這裡模擬發送，管理頁面會從一個統一的地方（如 Firebase 或數據庫）讀取
-                // 目前因為是前端展示，建議將所有訂單存放在一個獨立的 localStorage 鍵中模擬後端
-                const allOrders = JSON.parse(localStorage.getItem('bw_all_orders_db') || '[]');
-                localStorage.setItem('bw_all_orders_db', JSON.stringify([newOrder, ...allOrders]));
+                localStorage.setItem('bw_cust_history_v4', JSON.stringify(updatedHistory));
 
                 setCurrentOrder(newOrder);
                 setShowPreview(false);
-                setShowQR(true);
+                setShowBarcode(true);
                 setCart({});
+                setIsSyncing(false);
             };
 
             useEffect(() => {
-                if (showQR && currentOrder && qrCanvasRef.current) {
-                    new QRious({ element: qrCanvasRef.current, value: `BW-${currentOrder.id}`, size: 240 });
+                if (showBarcode && currentOrder && barcodeRef.current) {
+                    JsBarcode(barcodeRef.current, `BW-${currentOrder.id}`, {
+                        format: "CODE128",
+                        width: 2,
+                        height: 60,
+                        displayValue: true,
+                        fontSize: 18,
+                        margin: 10
+                    });
                 }
-            }, [showQR, currentOrder]);
+            }, [showBarcode, currentOrder]);
 
             return React.createElement('div', { className: "min-h-screen max-w-md mx-auto relative pb-20 bg-gray-50" },
                 React.createElement('header', { className: "bg-white p-5 sticky top-0 z-30 shadow-sm rounded-b-[2rem]" },
@@ -273,9 +290,9 @@
                             React.createElement('div', { className: "text-lg font-black text-rose-400 leading-none" }, `$${totalPrice.toLocaleString()}`)
                         ),
                         React.createElement('button', { 
-                            disabled: totalCount === 0, onClick: () => setShowPreview(true),
+                            disabled: totalCount === 0 || isSyncing, onClick: () => setShowPreview(true),
                             className: `px-5 py-2 rounded-xl text-xs font-black ${totalCount > 0 ? 'bg-rose-500 shadow-md' : 'bg-slate-800 text-slate-500'}`
-                        }, `預覽購物車 (${totalCount})`)
+                        }, isSyncing ? "處理中..." : `預覽購物車 (${totalCount})`)
                     )
                 ),
                 showPreview && React.createElement('div', { className: "fixed inset-0 bg-black/80 z-50 flex items-end justify-center" },
@@ -305,11 +322,13 @@
                         React.createElement('button', { onClick: () => setShowPreview(false), className: "w-full mt-4 text-gray-400 font-bold text-sm" }, "返回修改")
                     )
                 ),
-                showQR && React.createElement('div', { className: "fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-6 backdrop-blur-sm" },
+                showBarcode && React.createElement('div', { className: "fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-6 backdrop-blur-sm" },
                     React.createElement('div', { className: "bg-white w-full max-w-xs rounded-[3rem] p-8 flex flex-col items-center animate-up shadow-2xl relative" },
-                        React.createElement('button', { onClick: () => setShowQR(false), className: "absolute top-6 right-6 text-gray-300 text-xl" }, "✕"),
-                        React.createElement('h2', { className: "text-lg font-black mb-6 text-slate-800" }, "向職員出示QR Code"),
-                        React.createElement('canvas', { ref: qrCanvasRef }),
+                        React.createElement('button', { onClick: () => setShowBarcode(false), className: "absolute top-6 right-6 text-gray-300 text-xl" }, "✕"),
+                        React.createElement('h2', { className: "text-lg font-black mb-6 text-slate-800" }, "向職員出示條碼"),
+                        React.createElement('div', { className: "barcode-container" }, 
+                            React.createElement('svg', { ref: barcodeRef })
+                        ),
                         React.createElement('div', { className: "mt-6 text-center w-full" },
                             React.createElement('div', { className: "text-[10px] text-gray-400 uppercase font-bold" }, "Reference Number"),
                             React.createElement('div', { className: "text-2xl font-black text-rose-500" }, `BW-${currentOrder?.id}`),
@@ -320,17 +339,17 @@
                                 ))
                             )
                         ),
-                        React.createElement('button', { onClick: () => setShowQR(false), className: "mt-6 w-full bg-slate-900 text-white py-3 rounded-2xl font-black text-sm" }, "關閉")
+                        React.createElement('button', { onClick: () => setShowBarcode(false), className: "mt-6 w-full bg-slate-900 text-white py-3 rounded-2xl font-black text-sm" }, "關閉")
                     )
                 ),
                 showHistory && React.createElement('div', { className: "fixed inset-0 bg-black/60 z-[70] flex items-center justify-center p-6 backdrop-blur-sm" },
                     React.createElement('div', { className: "bg-white w-full max-w-sm rounded-[3rem] p-8 flex flex-col animate-up shadow-2xl relative max-h-[80vh]" },
                         React.createElement('button', { onClick: () => setShowHistory(false), className: "absolute top-6 right-6 text-gray-300 text-xl" }, "✕"),
-                        React.createElement('h2', { className: "text-xl font-black mb-6 text-slate-800" }, "歷史紀錄 (最近5筆)"),
+                        React.createElement('h2', { className: "text-xl font-black mb-6 text-slate-800" }, "歷史紀錄 (5張)"),
                         React.createElement('div', { className: "overflow-y-auto space-y-4 hide-scrollbar" },
                             orderHistory.length === 0 ? 
                                 React.createElement('div', { className: "text-center text-gray-400 py-10 italic" }, "暫無歷史紀錄") :
-                                orderHistory.map(ord => React.createElement('div', { key: ord.id, onClick: () => { setCurrentOrder(ord); setShowQR(true); }, className: "bg-gray-50 p-4 rounded-3xl border border-gray-100 flex items-center justify-between cursor-pointer" },
+                                orderHistory.map(ord => React.createElement('div', { key: ord.id, onClick: () => { setCurrentOrder(ord); setShowBarcode(true); }, className: "bg-gray-50 p-4 rounded-3xl border border-gray-100 flex items-center justify-between cursor-pointer" },
                                     React.createElement('div', { className: "flex-1" },
                                         React.createElement('div', { className: "flex justify-between" },
                                             React.createElement('span', { className: "font-black text-rose-500 text-sm" }, `BW-${ord.id}`),
