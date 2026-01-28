@@ -29,8 +29,8 @@
     <script>
         const { useState, useMemo, useRef, useEffect } = React;
 
-        // --- 已更新為您提供的最新網址 ---
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzpY7jLVbb3_LaaLzK5VwnrX7H5bwtl3M1OCGHMhRP2n_Qqk3S038JkgiE8_QSvYKdSrg/exec";
+        // --- 已更新為您最新的 Google Script 網址 ---
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby2PPrFFdZUfCT2j2CVUhUa8CTiDk1f9HmBuF_xgzEF4PBHQzQvoWDNAk1FqcTc-fawzw/exec";
 
         const BRAND_CONFIG = {
             "agnès b.": "https://www.bespoke-wedding.com/sites/default/files/%E7%A6%AE%E5%8D%A1/Agne%CC%80s%20b.png",
@@ -172,17 +172,22 @@
                 const id = Math.floor(100000 + Math.random() * 900000).toString();
                 const now = new Date().toLocaleString('zh-HK', { hour12: false });
                 const newOrder = { 
-                    id, total: totalPrice, date: now,
+                    id: id, 
+                    total: totalPrice, 
+                    date: now,
                     items: cartItems.map(i => ({ name: i.name, qty: i.qty, sku: i.sku, price: i.currentPrice }))
                 };
 
                 try {
                     await fetch(GOOGLE_SCRIPT_URL, {
-                        method: 'POST', mode: 'no-cors',
+                        method: 'POST',
+                        mode: 'no-cors',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(newOrder)
                     });
-                } catch (e) { console.error("Sync failed", e); }
+                } catch (e) { 
+                    console.error("Sync failed", e); 
+                }
 
                 const updatedHistory = [newOrder, ...orderHistory].slice(0, 5);
                 setOrderHistory(updatedHistory);
