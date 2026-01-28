@@ -4,10 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Bespoke Mall | 智能訂購系統</title>
+    
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@300;400;500;700;900&display=swap');
         body { font-family: 'Noto Sans HK', sans-serif; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: contain; }
@@ -23,10 +25,11 @@
 </head>
 <body class="bg-gray-50 text-slate-900">
     <div id="root"></div>
+
     <script>
         const { useState, useMemo, useRef, useEffect } = React;
 
-        [cite_start]// 已修正為您提供的網址 [cite: 34]
+        // --- 已更新為你提供的最新網址 ---
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx6fdd7wSz7UiJMAunDMjNrMa_HnwBZll3W_TStvhcoEwEvebEGrGCCOhswBAcu8yWeww/exec";
 
         const BRAND_CONFIG = {
@@ -58,9 +61,9 @@
             { category: "Gift Card", brand: "GODIVA", name: "GODIVA 軟雪糕及飲品禮券", sku: "10116", expiry: "2026-08-31", orig: 59, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/godiva-fnb.png", tiers: [{q:10, d:0.8508}] },
             { category: "Gift Card", brand: "GODIVA", name: "GODIVA $100禮券", sku: "10111", expiry: "2026-12-31", orig: 100, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/godiva-r.png", tiers: [{q:10, d:0.85}] },
             { category: "Gift Card", brand: "東海堂", name: "東海堂 $50 (花慶版)", sku: "10274", expiry: "2026-12-31", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/arm_f_50.png", tiers: [{q:10, d:0.79}] },
-            { category: "Gift Card", brand: "東海堂", name: "東海堂 $50 (經典版)", sku: "10107", expiry: "2026-12-31", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/ARM_0_50.png", tiers: [{q:10, d:0.79}] },
+            { category: "Gift Card", brand: "東海堂", name: "東海堂 $50 (經典版)", sku: "10107", expiry: "2026-12-31", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/ARM_O_50.png", tiers: [{q:10, d:0.79}] },
             { category: "Gift Card", brand: "東海堂", name: "東海堂 $25", sku: "10275", expiry: "2026-12-31", orig: 25, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/arm_G_25.png", tiers: [{q:10, d:0.792}] },
-            { category: "Gift Card", brand: "太興", name: "太興 $50 金豬禮券", sku: "10419", expiry: "2026-12-31", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/taihing1.png", tiers: [{q:10, d:0.88}] },
+            { category: "Gift Card", brand: "太興", name: "太興 $50金豬禮券", sku: "10419", expiry: "2026-12-31", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/taihing1.png", tiers: [{q:10, d:0.88}] },
             { category: "Gift Card", brand: "鴻福堂", name: "鴻福堂 $50 (囍)", sku: "10278", expiry: "2026-12-31", orig: 60, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/HFT_HEI.png", tiers: [{q:10, d:0.6}] },
             { category: "Gift Card", brand: "鴻福堂", name: "鴻福堂 $50 (粉紅)", sku: "10279", expiry: "2026-12-31", orig: 60, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/HKT_P.png", tiers: [{q:10, d:0.6}] },
             { category: "Gift Card", brand: "鴻福堂", name: "自家湯套票(10張)", sku: "HFT-001", expiry: "2026-12-31", orig: 600, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/自家湯.png", tiers: [{q:1, d:0.6583}] },
@@ -70,7 +73,7 @@
             { category: "Gift Card", brand: "Lady M", name: "Lady M US$80", sku: "10437-10443", expiry: "2026-12-31", orig: 80, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/Ladym80_.png", tiers: [{q:1, d:1.0}, {q:50, d:0.8}] },
             { category: "Gift Card", brand: "Lady M", name: "Lady M US$150", sku: "10430-10436", expiry: "2026-12-31", orig: 150, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡.png", tiers: [{q:1, d:1.0}, {q:50, d:0.8}] },
             { category: "Gift Card", brand: "L.M.D.C", name: "L.M.D.C $50禮券", sku: "10376/10377", expiry: "2026-12-31", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/LMDC50.png", tiers: [{q:10, d:0.88}, {q:50, d:0.84}] },
-            { category: "Gift Card", brand: "L.M.D.C", name: "L.M.D.C $100禮券", sku: "10380/10378", expiry: "2026-12-31", orig: 100, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/Imdc100.png", tiers: [{q:10, d:0.88}, {q:50, d:0.85}] },
+            { category: "Gift Card", brand: "L.M.D.C", name: "L.M.D.C $100禮券", sku: "10380/10378", expiry: "2026-12-31", orig: 100, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/lmdc100.png", tiers: [{q:10, d:0.88}, {q:50, d:0.85}] },
             { category: "Gift Card", brand: "L.M.D.C", name: "L.M.D.C $500禮券", sku: "10381/10379", expiry: "2026-12-31", orig: 500, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/LMDC500.png", tiers: [{q:1, d:0.88}, {q:10, d:0.85}] },
             { category: "Gift Card", brand: "華御結", name: "華御結 $25禮券", sku: "10446/10447", expiry: "2026-12-31", orig: 25, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/hana25.png", tiers: [{q:10, d:0.88}, {q:50, d:0.85}] },
             { category: "Gift Card", brand: "華御結", name: "華御結 $50禮券", sku: "10444/10445", expiry: "2026-12-31", orig: 50, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/hana50.png", tiers: [{q:10, d:0.88}, {q:50, d:0.85}] },
@@ -86,18 +89,18 @@
             { category: "Gift Card", brand: "奇華", name: "奇華 金緣喜禮券", sku: "10467", expiry: "2026-12-31", orig: 167.6, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/金緣.png", tiers: [{q:10, d:0.84}] },
             { category: "Gift Card", brand: "奇華", name: "奇華 金御喜禮券", sku: "10469", expiry: "2026-12-31", orig: 434.2, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/金御.png", tiers: [{q:1, d:0.84}] },
             { category: "Favor", brand: "agnès b.", name: "幸運曲奇(2個)", sku: "10370", expiry: "2026-12-31", orig: 46, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/婚禮回禮圓筒禮盒幸運曲奇(2個).png", tiers: [{q:10, d:0.85}] },
-            { category: "Favor", brand: "agnès b.", name: "榛子朱古力脆珠(40克)", sku: "10368", expiry: "2026-12-31", orig: 46, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/婚禮回禮圓筒禮盒:榛子朱古力脆珠%20(40克).png", tiers: [{q:10, d:0.85}] },
-            { category: "Favor", brand: "agnès b.", name: "片裝朱古力4片", sku: "10201", expiry: "2026-12-31", orig: 46, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/婚禮回禮圓筒禮盒:片裝朱古力4片.png", tiers: [{q:10, d:0.85}] },
+            { category: "Favor", brand: "agnès b.", name: "榛子朱古力脆珠(40克)", sku: "10368", expiry: "2026-12-31", orig: 46, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/婚禮回禮圓筒禮盒：榛子朱古力脆珠%20(40克).png", tiers: [{q:10, d:0.85}] },
+            { category: "Favor", brand: "agnès b.", name: "片裝朱古力4片", sku: "10201", expiry: "2026-12-31", orig: 46, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/婚禮回禮圓筒禮盒：片裝朱古力4片.png", tiers: [{q:10, d:0.85}] },
             { category: "Favor", brand: "GODIVA", name: "雅致巧克力鐵盒2顆", sku: "10135", expiry: "2026-12-31", orig: 59, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/go雅致巧克力鐵盒2顆裝.png", tiers: [{q:10, d:0.85}] },
             { category: "Favor", brand: "GODIVA", name: "絲帶2顆裝(粉藍)", sku: "10137", expiry: "2026-12-31", orig: 39, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/go雅致巧克力禮盒配絲帶2顆裝%20(粉藍).png", tiers: [{q:10, d:0.85}] },
             { category: "Favor", brand: "GODIVA", name: "絲帶2顆裝(粉紅)", sku: "10136", expiry: "2026-12-31", orig: 39, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/go雅致巧克力禮盒配絲帶2顆裝%20(粉藍).png", tiers: [{q:10, d:0.85}] },
             { category: "Favor", brand: "GODIVA", name: "巧克力紙盒2顆(金色)", sku: "10131", expiry: "2026-12-31", orig: 39, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/Go巧克力紙盒2顆裝%20(金色).png", tiers: [{q:10, d:0.85}] },
             { category: "Favor", brand: "GODIVA", name: "巧克力紙盒2顆(紅色)", sku: "10132", expiry: "2026-12-31", orig: 39, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/Go巧克力紙盒2顆裝%20(金色).png", tiers: [{q:10, d:0.85}] },
             { category: "Favor", brand: "Lady M", name: "女王棉花餅", sku: "10388/89/90", expiry: "2026-12-31", orig: 25, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/ladymb1.jpg", tiers: [{q:10, d:1.0}, {q:50, d:0.92}] },
-            { category: "Favor", brand: "L.M.D.C", name: "純黑松露禮盒(2粒)", sku: "10382", expiry: "2026-12-31", orig: 72, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/Imdc純黑松露朱古力禮盒%20(2粒)%20.png", tiers: [{q:10, d:0.85}] },
+            { category: "Favor", brand: "L.M.D.C", name: "純黑松露禮盒(2粒)", sku: "10382", expiry: "2026-12-31", orig: 72, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/lmdc.png", tiers: [{q:10, d:0.85}] },
             { category: "Favor", brand: "L.M.D.C", name: "心意禮盒(2粒)", sku: "10383", expiry: "2026-12-31", orig: 72, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/LMDC心意禮盒%20(2粒).png", tiers: [{q:10, d:0.85}] },
             { category: "Favor", brand: "L.M.D.C", name: "果仁朱古力禮盒(2粒)", sku: "10385", expiry: "2026-12-31", orig: 72, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/LMDC果仁.png", tiers: [{q:10, d:0.85}] },
-            { category: "Favor", brand: "L.M.D.C", name: "朱古力橙條禮盒(約15條)", sku: "10384", expiry: "2026-12-31", orig: 220, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/Imdc朱古力橙條禮盒%2050克%20(約15條).png", tiers: [{q:10, d:0.85}] },
+            { category: "Favor", brand: "L.M.D.C", name: "朱古力橙條禮盒(約15條)", sku: "10384", expiry: "2026-12-31", orig: 220, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/lmdc朱古力橙條禮盒%2050克%20(約15條).png", tiers: [{q:10, d:0.85}] },
             { category: "Favor", brand: "糕點時光", name: "囍糖雜錦款式", sku: "10402", expiry: "2026-12-31", orig: 20, min: 10, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/禮卡png/timeto.png", tiers: [{q:10, d:0.88}] },
             { category: "Favor", brand: "永樂", name: "有麵子回禮小禮物", sku: "10422", expiry: "2026-12-31", orig: 38, min: 20, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/永樂%20有麵子%20回禮小禮物%20.jpg", tiers: [{q:20, d:0.79}] },
             { category: "Favor", brand: "Bonne Maman", name: "蜜糖30g x 60瓶", sku: "10424", expiry: "2027-01-01", orig: 420, min: 1, img: "https://www.bespoke-wedding.com/sites/default/files/禮卡/回禮禮物/蜜糖%2030g%20x%2060瓶.png", tiers: [{q:1, d:0.8}] }
@@ -114,6 +117,7 @@
             const [currentOrder, setCurrentOrder] = useState(null);
             const [orderHistory, setOrderHistory] = useState([]);
             const [isSyncing, setIsSyncing] = useState(false);
+
             const barcodeRef = useRef(null);
 
             useEffect(() => {
@@ -183,6 +187,7 @@
                 const updatedHistory = [newOrder, ...orderHistory].slice(0, 5);
                 setOrderHistory(updatedHistory);
                 localStorage.setItem('bw_cust_history_v4', JSON.stringify(updatedHistory));
+
                 setCurrentOrder(newOrder);
                 setShowPreview(false);
                 setShowBarcode(true);
